@@ -23,34 +23,11 @@
   flex-shrink: 0;
 }
 
-.brand-icon-wrapper {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(99, 102, 241, 0.12));
-  border: 1px solid rgba(37, 99, 235, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
-  transition: all 0.15s ease;
-  color: #2563eb;
-}
-
-.header-brand:hover .brand-icon-wrapper {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(99, 102, 241, 0.2));
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.22);
-  transform: scale(1.04);
-}
-
 .brand-title {
   font-size: 17px;
   font-weight: 800;
   font-family: var(--font-display);
-  background: linear-gradient(90deg, #0f172a 20%, #2563eb 70%, #6366f1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
   letter-spacing: -0.3px;
 }
 

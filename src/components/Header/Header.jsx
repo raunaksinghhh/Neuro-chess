@@ -8,7 +8,6 @@ import {
   Volume2,
   VolumeX,
   Settings,
-  BrainCircuit,
   Zap
 } from 'lucide-react';
 import './Header.css';
@@ -33,9 +32,6 @@ export function Header({
     <header className="app-header">
       {/* Logo & Brand */}
       <div className="header-brand" onClick={() => onSelectMode('play')}>
-        <div className="brand-icon-wrapper">
-          <BrainCircuit size={22} color="var(--neon-cyan)" />
-        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="brand-title">Neuro-Chess</span>
           <span className="brand-badge">v2.0</span>
