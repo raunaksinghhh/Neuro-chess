@@ -2,22 +2,18 @@ import React from 'react';
 import './EvalBar.css';
 
 export function EvalBar({ score = 0, orientation = 'white', isMate = false, mateIn = 0 }) {
-  // Convert score (centipawns) to white percentage (0% to 100%)
-  // Score of 0 -> 50%
-  // +500 cp (+5 pawns) -> ~90%
-  // -500 cp (-5 pawns) -> ~10%
-  let whitePercentage = 50;
+  let whitePercent = 50;
 
   if (isMate) {
-    whitePercentage = mateIn > 0 ? 100 : 0;
+    whitePercent = mateIn > 0 ? 97 : 3;
   } else {
-    const clampedScore = Math.max(-1000, Math.min(1000, score));
-    // Logistic curve for realistic smooth bar representation
-    whitePercentage = 50 + 50 * (2 / (1 + Math.exp(-0.0035 * clampedScore)) - 1);
-    whitePercentage = Math.max(4, Math.min(96, whitePercentage));
+    const clamped = Math.max(-1000, Math.min(1000, score));
+    whitePercent = 50 + 50 * (2 / (1 + Math.exp(-0.0038 * clamped)) - 1);
+    whitePercent = Math.max(4, Math.min(96, whitePercent));
   }
 
-  // Format display score
+  const blackPercent = 100 - whitePercent;
+
   let scoreText = '0.0';
   if (isMate) {
     scoreText = `M${Math.abs(mateIn)}`;
@@ -26,21 +22,24 @@ export function EvalBar({ score = 0, orientation = 'white', isMate = false, mate
     scoreText = score > 0 ? `+${pawns}` : score < 0 ? `-${pawns}` : '0.0';
   }
 
-  const isWhiteAdvantage = score >= 0;
+  const isWhiteAhead = score >= 0;
   const isFlipped = orientation === 'black';
 
   return (
-    <div className={`eval-bar-container ${isFlipped ? 'eval-bar-flipped' : ''}`} title={`Evaluation: ${scoreText}`}>
+    <div
+      className={`eval-bar-container ${isFlipped ? 'eval-bar-flipped' : ''}`}
+      title={`Evaluation: ${scoreText}`}
+    >
       <div className="eval-bar-track">
-        <div
-          className="eval-white-fill"
-          style={{ height: `${whitePercentage}%` }}
-        />
-        
-        {/* Score Display Tag */}
+        {/* Black fill (top) */}
+        <div className="eval-black-fill" style={{ height: `${blackPercent}%` }} />
+        {/* White fill (bottom) */}
+        <div className="eval-white-fill" style={{ height: `${whitePercent}%` }} />
+
+        {/* Score label */}
         <div
           className={`eval-score-tag ${
-            (isWhiteAdvantage && !isFlipped) || (!isWhiteAdvantage && isFlipped)
+            (isWhiteAhead && !isFlipped) || (!isWhiteAhead && isFlipped)
               ? 'eval-score-white'
               : 'eval-score-black'
           }`}

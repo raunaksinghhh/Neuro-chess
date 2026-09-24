@@ -234,8 +234,12 @@ export function Chessboard({
       const isLegal = legalTargetsMap.has(square);
       const isCapture = isLegal && piece !== null;
       const isLast = lastMove && (lastMove.from === square || lastMove.to === square);
+      const isLastDest = !!(lastMove && lastMove.to === square);
       const isKingInCheck = inCheck && kingCheckSquare === square;
       const isCustomHighlighted = highlightedSquares.has(square);
+
+      // Unique key that changes every time a piece arrives at this square
+      const moveKey = isLastDest ? `${lastMove.from}->${square}` : undefined;
 
       // Coordinate labels on edges
       const fileLabel = rIdx === 7 ? file : '';
@@ -259,6 +263,7 @@ export function Chessboard({
           isLegalMove={isLegal}
           isCaptureTarget={isCapture}
           isLastMove={isLast}
+          isLastMoveDest={isLastDest}
           isCheck={isKingInCheck}
           isHighlighted={isCustomHighlighted}
           heatmapIntensity={heatmapVal}
@@ -267,6 +272,7 @@ export function Chessboard({
           fileLabel={fileLabel}
           rankLabel={rankLabel}
           pieceStyle={pieceStyle}
+          moveKey={moveKey}
           onClick={handleSquareClick}
           onMouseDown={handleMouseDown}
           onDrop={handleDrop}

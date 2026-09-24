@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "vite",
+    "server": "./backend/neuro_engine_server --port 8080",
+    "build:engine": "cd backend && ./build.sh",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"

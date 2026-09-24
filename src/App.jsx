@@ -18,6 +18,7 @@ import { soundManager } from './utils/sound';
 import { detectOpening, exportPGN } from './utils/pgnParser';
 import { calculateNeuralHeatmap, evaluateBoard } from './engine/neuralEval';
 import { getEngineAnalysis, getAIMove, classifyMove } from './engine/chessAI';
+import { externalEngine } from './engine/externalEngine';
 import { AI_PERSONAS, getPersonaByElo } from './engine/personas';
 import { CHESS_PUZZLES } from './engine/puzzles';
 
@@ -36,7 +37,7 @@ export default function App() {
 
   // Board View Preferences
   const [orientation, setOrientation] = useState('white');
-  const [boardTheme, setBoardTheme] = useState('cyber');
+  const [boardTheme, setBoardTheme] = useState('emerald');
   const [pieceStyle, setPieceStyle] = useState('neo');
   const [showCoordinates, setShowCoordinates] = useState(true);
   const [autoQueen, setAutoQueen] = useState(false);
@@ -45,24 +46,26 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [soundVolume, setSoundVolume] = useState(0.5);
 
-  // Neural & Engine Overlays
+  // Neural & Engine Overlays (Disabled by default during player matches)
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [showThreats, setShowThreats] = useState(false);
-  const [showEngineArrow, setShowEngineArrow] = useState(true);
+  const [showEngineArrow, setShowEngineArrow] = useState(false);
   const [isContinuousEval, setIsContinuousEval] = useState(true);
 
-  // Engine Telemetry State
+  // C++ Engine Backend State
+  const [isCppConnected, setIsCppConnected] = useState(false);
   const [engineAnalysis, setEngineAnalysis] = useState(null);
   const [isThinking, setIsThinking] = useState(false);
+  const isThinkingRef = useRef(false); // Ref to avoid stale closure in async AI turn
   const [activePersona, setActivePersona] = useState(AI_PERSONAS[2]); // Tal default
-  const [externalEngineUrl, setExternalEngineUrl] = useState('');
+  const [externalEngineUrl, setExternalEngineUrl] = useState('http://localhost:8080');
 
-  // Play vs AI Match State
+  // Play vs AI Match State (Defaults to active unlimited game)
   const [playerColor, setPlayerColor] = useState('w');
-  const [timeControl, setTimeControl] = useState({ id: '10m', label: '10m Rapid', initial: 600, inc: 0 });
-  const [whiteTime, setWhiteTime] = useState(600);
-  const [blackTime, setBlackTime] = useState(600);
-  const [isGameActive, setIsGameActive] = useState(false);
+  const [timeControl, setTimeControl] = useState({ id: 'unlimited', label: 'Unlimited (Casual)', initial: null, inc: 0 });
+  const [whiteTime, setWhiteTime] = useState(null);
+  const [blackTime, setBlackTime] = useState(null);
+  const [isGameActive, setIsGameActive] = useState(true);
 
   // Engine vs Engine Match State
   const [whitePersona, setWhitePersona] = useState(AI_PERSONAS[2]); // Tal
@@ -89,6 +92,23 @@ export default function App() {
     soundManager.volume = soundVolume;
   }, [soundEnabled, soundVolume]);
 
+  // C++ Backend Health Monitoring
+  useEffect(() => {
+    externalEngine.setUrl(externalEngineUrl);
+    const unsubscribe = externalEngine.subscribe((connected) => {
+      setIsCppConnected(connected);
+    });
+
+    const interval = setInterval(() => {
+      externalEngine.checkHealth();
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+      unsubscribe();
+    };
+  }, [externalEngineUrl]);
+
   // Compute opening book name
   const openingInfo = useMemo(() => {
     return detectOpening(history);
@@ -103,7 +123,6 @@ export default function App() {
   // Threat arrows generated from neural calculations
   const threatArrows = useMemo(() => {
     if (!showThreats || !heatmapData?.attackedSquares) return [];
-    // Convert attacked squares to arrows
     return heatmapData.attackedSquares.slice(0, 3).map((atk) => ({
       from: atk.square,
       to: atk.square
@@ -119,13 +138,24 @@ export default function App() {
     };
   }, [showEngineArrow, engineAnalysis]);
 
-  // Run engine analysis whenever position changes
+  // Run engine analysis (C++ Backend or Client Fallback)
   const runEvaluation = useCallback(
-    async (depth = 3) => {
+    async (depth = 4) => {
       if (!isContinuousEval) return;
       try {
-        const analysis = await getEngineAnalysis(chess, depth, 3);
-        setEngineAnalysis(analysis);
+        const curFen = chess.fen();
+        // Try C++ Backend first
+        if (externalEngine.isConnected) {
+          const cppResult = await externalEngine.queryEvaluation(curFen, depth);
+          if (cppResult) {
+            setEngineAnalysis(cppResult);
+            return;
+          }
+        }
+
+        // Client Fallback
+        const jsAnalysis = await getEngineAnalysis(chess, depth, 3);
+        setEngineAnalysis(jsAnalysis);
       } catch (err) {
         console.error('Analysis error:', err);
       }
@@ -134,8 +164,21 @@ export default function App() {
   );
 
   useEffect(() => {
-    runEvaluation(activePersona?.depth || 3);
+    runEvaluation(activePersona?.depth || 4);
   }, [fen, runEvaluation, activePersona]);
+
+  // Handle Game Over
+  const handleGameOver = useCallback(
+    (result, reason) => {
+      setIsGameActive(false);
+      setIsSimulationRunning(false);
+      if (result === '1-0' || result === '0-1') {
+        soundManager.playVictory();
+      }
+      setGameOverModal({ isOpen: true, result, reason });
+    },
+    []
+  );
 
   // Play Mode Timers Loop
   useEffect(() => {
@@ -164,20 +207,7 @@ export default function App() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isGameActive, chess.turn(), timeControl]);
-
-  // Handle Game Over
-  const handleGameOver = useCallback(
-    (result, reason) => {
-      setIsGameActive(false);
-      setIsSimulationRunning(false);
-      if (result === '1-0' || result === '0-1') {
-        soundManager.playVictory();
-      }
-      setGameOverModal({ isOpen: true, result, reason });
-    },
-    []
-  );
+  }, [isGameActive, chess.turn(), timeControl, handleGameOver]);
 
   // Check board state after every move
   const checkGameTermination = useCallback(() => {
@@ -242,16 +272,24 @@ export default function App() {
           classification
         };
 
-        const newHistory = [...history, moveRecord];
-        setHistory(newHistory);
-        setCurrentMoveIndex(newHistory.length - 1);
+        // Use functional setState to avoid stale history closure
+        setHistory((prev) => {
+          const newHistory = [...prev, moveRecord];
+          setCurrentMoveIndex(newHistory.length - 1);
+          return newHistory;
+        });
         setLastMove({ from: moveResult.from, to: moveResult.to });
         setFen(chess.fen());
 
+        if (activeMode === 'play') {
+          setIsGameActive(true);
+          setShowEngineArrow(false);
+        }
+
         // Increment time if time control has increment
         if (isGameActive && timeControl.inc > 0) {
-          if (isWhiteTurn) setWhiteTime((t) => t + timeControl.inc);
-          else setBlackTime((t) => t + timeControl.inc);
+          if (isWhiteTurn) setWhiteTime((t) => (t ? t + timeControl.inc : t));
+          else setBlackTime((t) => (t ? t + timeControl.inc : t));
         }
 
         checkGameTermination();
@@ -261,7 +299,7 @@ export default function App() {
         return false;
       }
     },
-    [chess, engineAnalysis, history, isGameActive, timeControl, checkGameTermination]
+    [chess, engineAnalysis, isGameActive, activeMode, timeControl, checkGameTermination]
   );
 
   // Play vs AI Engine Turn Trigger
@@ -272,21 +310,46 @@ export default function App() {
     const currentTurn = chess.turn();
     const isAITurn = currentTurn !== playerColor;
 
-    if (isAITurn && !isThinking) {
+    // Use ref to prevent stale closure re-entrancy
+    if (isAITurn && !isThinkingRef.current) {
+      isThinkingRef.current = true;
       setIsThinking(true);
-      const delay = Math.max(350, Math.random() * 600);
+      const delay = isCppConnected ? 300 : Math.max(400, Math.random() * 500 + 300);
 
       const timer = setTimeout(async () => {
-        const aiMove = await getAIMove(chess, activePersona);
-        if (aiMove) {
-          makeMove(aiMove);
+        try {
+          let aiMove = null;
+          const currentFen = chess.fen();
+
+          if (externalEngine.isConnected) {
+            const cppRes = await externalEngine.queryEvaluation(currentFen, activePersona.depth || 4);
+            if (cppRes?.bestMove) {
+              aiMove = { from: cppRes.bestMove.from, to: cppRes.bestMove.to };
+            }
+          }
+
+          if (!aiMove) {
+            aiMove = await getAIMove(chess, activePersona);
+          }
+
+          if (aiMove) {
+            makeMove(aiMove);
+          }
+        } catch (err) {
+          console.error('AI move error:', err);
+        } finally {
+          isThinkingRef.current = false;
+          setIsThinking(false);
         }
-        setIsThinking(false);
       }, delay);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        isThinkingRef.current = false;
+        setIsThinking(false);
+      };
     }
-  }, [fen, activeMode, isGameActive, playerColor, isThinking, activePersona, chess, makeMove]);
+  }, [fen, activeMode, isGameActive, playerColor, activePersona, chess, isCppConnected, makeMove]);
 
   // Engine vs Engine Self-Play Loop
   useEffect(() => {
@@ -300,7 +363,17 @@ export default function App() {
     const currentPersona = currentTurn === 'w' ? whitePersona : blackPersona;
 
     const timer = setTimeout(async () => {
-      const move = await getAIMove(chess, currentPersona);
+      let move = null;
+      if (externalEngine.isConnected) {
+        const cppRes = await externalEngine.queryEvaluation(chess.fen(), currentPersona.depth || 4);
+        if (cppRes?.bestMove) {
+          move = { from: cppRes.bestMove.from, to: cppRes.bestMove.to };
+        }
+      }
+      if (!move) {
+        move = await getAIMove(chess, currentPersona);
+      }
+
       if (move) {
         makeMove(move);
       } else {
@@ -310,6 +383,36 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, [fen, activeMode, isSimulationRunning, simSpeedMs, whitePersona, blackPersona, chess, makeMove]);
+
+  // Start / Restart Match vs AI
+  const handleStartPlayGame = useCallback(
+    (chosenColor = playerColor, chosenPersona = activePersona) => {
+      chess.reset();
+      setFen(chess.fen());
+      setHistory([]);
+      setCurrentMoveIndex(-1);
+      setLastMove(null);
+      setWhiteTime(timeControl.initial);
+      setBlackTime(timeControl.initial);
+      setIsGameActive(true);
+      setIsThinking(false);
+      setOrientation(chosenColor === 'w' ? 'white' : 'black');
+      soundManager.playMove();
+    },
+    [chess, playerColor, activePersona, timeControl]
+  );
+
+  // Switch Player Color (e.g. switch to Black and let AI open as White)
+  const handleSetPlayerColor = (color) => {
+    setPlayerColor(color);
+    setOrientation(color === 'w' ? 'white' : 'black');
+    handleStartPlayGame(color);
+  };
+
+  // Select AI Persona
+  const handleSelectPersona = (persona) => {
+    setActivePersona(persona);
+  };
 
   // Load a Puzzle
   const loadPuzzle = useCallback(
@@ -427,20 +530,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentMoveIndex, history]);
 
-  // Start Play Match
-  const handleStartPlayGame = () => {
-    chess.reset();
-    setFen(chess.fen());
-    setHistory([]);
-    setCurrentMoveIndex(-1);
-    setLastMove(null);
-    setWhiteTime(timeControl.initial);
-    setBlackTime(timeControl.initial);
-    setIsGameActive(true);
-    setOrientation(playerColor === 'w' ? 'white' : 'black');
-    soundManager.playMove();
-  };
-
   // Reset / Clear board
   const handleResetBoard = () => {
     chess.reset();
@@ -481,15 +570,22 @@ export default function App() {
   // Current evaluation score
   const evalScore = engineAnalysis?.score || 0;
 
+  // Whether user can interact with the board
+  const isBoardInteractive =
+    activeMode !== 'review' &&
+    !isSimulationRunning &&
+    !(activeMode === 'play' && (isThinking || chess.turn() !== playerColor));
+
   return (
     <div className="app-layout">
-      {/* Global Navigation Header */}
+      {/* Global Navigation Header with live C++ Engine connection indicator */}
       <Header
         activeMode={activeMode}
         onSelectMode={handleSelectMode}
         soundEnabled={soundEnabled}
         onToggleSound={() => setSoundEnabled((s) => !s)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        isCppConnected={isCppConnected}
       />
 
       {/* Main Workspace Layout */}
@@ -504,8 +600,8 @@ export default function App() {
               </div>
               <div className="player-name">
                 {orientation === 'white'
-                  ? (activeMode === 'play' ? activePersona?.name : 'Black Engine')
-                  : 'White Player'}
+                  ? (activeMode === 'play' ? `${activePersona?.name} (AI)` : 'Black Engine')
+                  : 'You (White)'}
               </div>
             </div>
             <span className="badge badge-purple">
@@ -529,7 +625,7 @@ export default function App() {
               engineArrow={engineArrow}
               threatArrows={threatArrows}
               lastMove={lastMove}
-              isInteractive={activeMode !== 'review' && !isSimulationRunning}
+              isInteractive={isBoardInteractive}
               autoQueen={autoQueen}
             />
           </div>
@@ -542,8 +638,8 @@ export default function App() {
               </div>
               <div className="player-name">
                 {orientation === 'white'
-                  ? (activeMode === 'play' ? 'You' : 'White Player')
-                  : activePersona?.name}
+                  ? (activeMode === 'play' ? 'You (White)' : 'White Player')
+                  : `${activePersona?.name} (AI)`}
               </div>
             </div>
             <span className="badge badge-cyan">
@@ -558,7 +654,7 @@ export default function App() {
           {activeMode === 'play' && (
             <PlayMode
               gameState={{ turn: chess.turn() }}
-              onStartGame={handleStartPlayGame}
+              onStartGame={() => handleStartPlayGame(playerColor, activePersona)}
               onTakeback={() => {
                 chess.undo();
                 chess.undo(); // Undo both player and AI move
@@ -567,17 +663,25 @@ export default function App() {
                 setCurrentMoveIndex(chess.history().length - 1);
               }}
               onResign={() => handleGameOver(playerColor === 'w' ? '0-1' : '1-0', 'Resignation')}
-              onOfferDraw={() => handleGameOver('1/2-1/2', 'Draw Agreed')}
+              onOfferDraw={() => {
+                const evalCp = evaluateBoard(chess);
+                if (Math.abs(evalCp) <= 120) {
+                  handleGameOver('1/2-1/2', 'Draw Agreed');
+                } else {
+                  alert(`${activePersona?.name} declined the draw and wants to play on!`);
+                }
+              }}
               onGetHint={() => setShowEngineArrow(true)}
-              onSelectPersona={setActivePersona}
+              onSelectPersona={handleSelectPersona}
               activePersona={activePersona}
               playerColor={playerColor}
-              onSetPlayerColor={setPlayerColor}
+              onSetPlayerColor={handleSetPlayerColor}
               timeControl={timeControl}
               onSetTimeControl={setTimeControl}
               whiteTime={whiteTime}
               blackTime={blackTime}
               isGameActive={isGameActive}
+              isThinking={isThinking}
             />
           )}
 
@@ -660,6 +764,7 @@ export default function App() {
             engineAnalysis={engineAnalysis}
             activePersona={activePersona}
             isThinking={isThinking}
+            activeMode={activeMode}
             showHeatmap={showHeatmap}
             onToggleHeatmap={() => setShowHeatmap((h) => !h)}
             showThreats={showThreats}
@@ -708,7 +813,7 @@ export default function App() {
         result={gameOverModal.result}
         reason={gameOverModal.reason}
         playerColor={playerColor}
-        onRematch={handleStartPlayGame}
+        onRematch={() => handleStartPlayGame(playerColor, activePersona)}
         onOpenReview={() => {
           setGameOverModal({ isOpen: false, result: '*', reason: '' });
           setActiveMode('review');

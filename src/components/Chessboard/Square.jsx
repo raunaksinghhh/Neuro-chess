@@ -9,14 +9,16 @@ export function Square({
   isLegalMove,
   isCaptureTarget,
   isLastMove,
+  isLastMoveDest,
   isCheck,
   isHighlighted,
-  heatmapIntensity = 0, // -1 (Black) to +1 (White)
+  heatmapIntensity = 0,
   showHeatmap = false,
   showCoordinates = true,
   fileLabel = '',
   rankLabel = '',
   pieceStyle = 'neo',
+  moveKey,
   onClick,
   onMouseDown,
   onMouseEnter,
@@ -24,65 +26,54 @@ export function Square({
   onDragOver,
   onDrop
 }) {
-  // Compute heatmap background style if enabled
   let heatmapStyle = {};
   if (showHeatmap && Math.abs(heatmapIntensity) > 0.05) {
-    if (heatmapIntensity > 0) {
-      heatmapStyle = {
-        backgroundColor: `rgba(0, 240, 255, ${Math.min(0.45, heatmapIntensity * 0.45)})`
-      };
-    } else {
-      heatmapStyle = {
-        backgroundColor: `rgba(244, 63, 94, ${Math.min(0.45, Math.abs(heatmapIntensity) * 0.45)})`
-      };
-    }
+    heatmapStyle = heatmapIntensity > 0
+      ? { backgroundColor: `rgba(56,189,248,${Math.min(0.45, heatmapIntensity * 0.45)})` }
+      : { backgroundColor: `rgba(244,63,94,${Math.min(0.45, Math.abs(heatmapIntensity) * 0.45)})` };
   }
+
+  const squareClasses = [
+    'chess-square',
+    isDark ? 'square-dark' : 'square-light',
+    isSelected      ? 'square-selected'        : '',
+    isLastMove      ? 'square-lastmove'         : '',
+    isCheck         ? 'square-check'            : '',
+    isHighlighted   ? 'square-custom-highlight' : '',
+  ].filter(Boolean).join(' ');
 
   return (
     <div
-      className={`chess-square ${isDark ? 'square-dark' : 'square-light'} ${
-        isSelected ? 'square-selected' : ''
-      } ${isLastMove ? 'square-lastmove' : ''} ${isCheck ? 'square-check' : ''} ${
-        isHighlighted ? 'square-custom-highlight' : ''
-      }`}
+      className={squareClasses}
       style={heatmapStyle}
       onClick={() => onClick(square)}
       onMouseDown={(e) => onMouseDown && onMouseDown(e, square)}
       onMouseEnter={() => onMouseEnter && onMouseEnter(square)}
-      onDragOver={(e) => {
-        e.preventDefault();
-        if (onDragOver) onDragOver(e, square);
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        if (onDrop) onDrop(e, square);
-      }}
+      onDragOver={(e) => { e.preventDefault(); if (onDragOver) onDragOver(e, square); }}
+      onDrop={(e) => { e.preventDefault(); if (onDrop) onDrop(e, square); }}
       data-square={square}
     >
-      {/* Rank / File Coordinate Labels */}
+      {/* Coordinates */}
       {showCoordinates && fileLabel && (
-        <span className={`coord-file ${isDark ? 'coord-dark' : 'coord-light'}`}>
-          {fileLabel}
-        </span>
+        <span className={`coord-file ${isDark ? 'coord-dark' : 'coord-light'}`}>{fileLabel}</span>
       )}
       {showCoordinates && rankLabel && (
-        <span className={`coord-rank ${isDark ? 'coord-dark' : 'coord-light'}`}>
-          {rankLabel}
-        </span>
+        <span className={`coord-rank ${isDark ? 'coord-dark' : 'coord-light'}`}>{rankLabel}</span>
       )}
 
-      {/* Piece Container */}
+      {/* Piece — key changes on move-to so React remounts → CSS animation fires */}
       {piece && (
         <div
-          className={`piece-wrapper ${piece.color === 'w' ? 'piece-white' : 'piece-black'}`}
-          draggable={true}
+          key={moveKey || `${square}-${piece.type}-${piece.color}`}
+          className={`piece-wrapper ${piece.color === 'w' ? 'piece-white' : 'piece-black'} ${isLastMoveDest ? 'piece-just-landed' : ''}`}
+          draggable
           onDragStart={(e) => onDragStart && onDragStart(e, square, piece)}
         >
-          <PieceIcon piece={piece.type} color={piece.color} style={pieceStyle} />
+          <PieceIcon piece={piece.type} color={piece.color} />
         </div>
       )}
 
-      {/* Legal Move Indicators */}
+      {/* Legal move indicators */}
       {isLegalMove && !isCaptureTarget && <div className="legal-move-dot" />}
       {isCaptureTarget && <div className="legal-capture-ring" />}
     </div>

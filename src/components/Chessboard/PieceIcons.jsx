@@ -1,204 +1,162 @@
 import React from 'react';
 
-export function PieceIcon({ piece, color, style = 'neo', className = '' }) {
-  const isWhite = color === 'w';
+export function PieceIcon({ piece, color }) {
+  const isW = color === 'w';
+  const uid = `${piece}${color}`;
 
-  // Cyber Neo Gradient Definitions & High-Detail Chess Piece Vectors
-  const fillWhite = style === 'cyber' ? 'url(#whiteNeoGlow)' : (isWhite ? '#ffffff' : '#1e2029');
-  const strokeWhite = style === 'cyber' ? '#00f0ff' : '#000000';
-  const fillBlack = style === 'cyber' ? '#121524' : (isWhite ? '#f8fafc' : '#111827');
-  const strokeBlack = style === 'cyber' ? '#a855f7' : (isWhite ? '#000000' : '#ffffff');
+  // Color system
+  const light1 = '#f5f0e6';
+  const light2 = '#c8bfa8';
+  const dark1  = '#4a5568';
+  const dark2  = '#1a202c';
+  const strokeW = '#1a1f2e';
+  const strokeB = '#0a0f1a';
 
-  const mainFill = isWhite ? '#f8fafc' : '#181a24';
-  const mainStroke = isWhite ? '#334155' : '#e2e8f0';
-  const glowStroke = isWhite ? '#00f0ff' : '#c084fc';
+  const fill1  = isW ? light1 : dark1;
+  const fill2  = isW ? light2 : dark2;
+  const stroke = isW ? strokeW : strokeB;
+  const hl     = isW ? 'rgba(255,255,255,0.55)' : 'rgba(148,163,184,0.13)';
+  const accent = isW ? '#9ca3af' : '#6b7280';
+  const sw     = 1.5;
+
+  const defs = (
+    <defs>
+      <linearGradient id={`lg${uid}`} x1="20%" y1="0%" x2="80%" y2="100%">
+        <stop offset="0%"   stopColor={fill1} />
+        <stop offset="100%" stopColor={fill2} />
+      </linearGradient>
+      <radialGradient id={`rg${uid}`} cx="35%" cy="25%" r="60%">
+        <stop offset="0%"   stopColor={hl} />
+        <stop offset="100%" stopColor="transparent" />
+      </radialGradient>
+    </defs>
+  );
+
+  const gp = {
+    fill: `url(#lg${uid})`,
+    stroke,
+    strokeWidth: sw,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  };
+
+  const ov = (d, extra = {}) => (
+    <path d={d} fill={`url(#rg${uid})`} stroke="none" {...extra} />
+  );
+
+  const sv = { viewBox: '0 0 45 45', width: '100%', height: '100%', style: { display: 'block', overflow: 'visible' } };
 
   switch (piece) {
-    case 'p': // Pawn
+    /* ──────────── PAWN ──────────── */
+    case 'p': {
+      const body = 'M 19.5,16 C 15.5,18.5 13.5,23 13.5,27 C 13.5,30 15.5,32 18,33 L 27,33 C 29.5,32 31.5,30 31.5,27 C 31.5,23 29.5,18.5 25.5,16 Z';
+      const base = 'M 10,37 C 10,39 15.5,40.5 22.5,40.5 C 29.5,40.5 35,39 35,37 L 33,33 L 12,33 Z';
       return (
-        <svg viewBox="0 0 45 45" className={className} width="100%" height="100%">
-          <defs>
-            <linearGradient id={`pawnGrad-${color}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={isWhite ? '#ffffff' : '#2d3142'} />
-              <stop offset="100%" stopColor={isWhite ? '#cbd5e1' : '#12141e'} />
-            </linearGradient>
-          </defs>
-          <path
-            d="m 22.5,9 a 4,4 0 1 1 -0.1,0 z"
-            fill={`url(#pawnGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          <path
-            d="m 22.5,10 c 3,7 5,8 5,12 0,4 -3,6 -5,6 -2,0 -5,-2 -5,-6 0,-4 2,-5 5,-12 z"
-            fill={`url(#pawnGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          <path
-            d="m 12,36 c 0,-3 4,-5 10.5,-5 6.5,0 10.5,2 10.5,5 0,1 -1,2 -1,2 H 13 c 0,0 -1,-1 -1,-2 z"
-            fill={`url(#pawnGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          {style === 'cyber' && (
-            <circle cx="22.5" cy="9" r="2" fill={glowStroke} opacity="0.8" />
-          )}
+        <svg {...sv}>{defs}
+          <circle cx="22.5" cy="10"  r="5.5" {...gp} />
+          <path d={body} {...gp} />
+          <path d={base} {...gp} />
+          <circle cx="22.5" cy="10" r="5.5" fill={`url(#rg${uid})`} stroke="none" />
+          {ov(body)}
         </svg>
       );
+    }
 
-    case 'n': // Knight
+    /* ──────────── KNIGHT ──────────── */
+    case 'n': {
+      const horse = 'M 22,10 C 29,9 37,15 37,27 C 37,32 34.5,34.5 30,35.5 L 27,35.5 C 25.5,30 23.5,27.5 20.5,27 C 17.5,27 16.5,28.5 15.5,31 C 14.5,33.5 12.5,36 8.5,36 C 7.5,27 9.5,19.5 15.5,13.5 C 13.5,13.5 11.5,15 9.5,18 C 9.5,13.5 12.5,8.5 17.5,7.5 C 19.5,7 20.5,8 22,10 Z';
       return (
-        <svg viewBox="0 0 45 45" className={className} width="100%" height="100%">
-          <defs>
-            <linearGradient id={`knightGrad-${color}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={isWhite ? '#ffffff' : '#2d3142'} />
-              <stop offset="100%" stopColor={isWhite ? '#cbd5e1' : '#12141e'} />
-            </linearGradient>
-          </defs>
-          <path
-            d="M 22,10 C 32.5,11 38.5,18 38,36 L 27,36 C 26,30 25.5,29 23,28 C 21.5,27.5 19,27 18.5,29 C 18,31 16,36 10,36 C 9,27 9,21 15,14 C 13,14 11,15.5 9,18 C 9,15 11,10 16,9 C 18,8.5 20,8.5 22,10 z"
-            fill={`url(#knightGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          <circle cx="15" cy="18" r="1.5" fill={isWhite ? '#0284c7' : '#c084fc'} />
-          <path
-            d="M 12,36 C 12,38 15,39 22.5,39 C 30,39 33,38 33,36 z"
-            fill={`url(#knightGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
+        <svg {...sv}>{defs}
+          <path d={horse} {...gp} />
+          {/* Eye */}
+          <circle cx="15"   cy="16.5" r="2"   fill={isW ? '#1e293b' : '#e2e8f0'} stroke="none" />
+          <circle cx="15.4" cy="16"   r="0.7" fill={isW ? '#60a5fa' : '#818cf8'} stroke="none" />
+          {/* Nostril */}
+          <circle cx="13" cy="19.5" r="1.1" fill={accent} stroke="none" />
+          {/* Mane line */}
+          <path d="M 22,10 C 25,12 27,16 27,21" stroke={accent} strokeWidth="1.2" strokeLinecap="round" fill="none" />
+          {/* Base */}
+          <path d="M 7,36 C 7,39 12.5,40.5 22.5,40.5 C 32.5,40.5 38,39 38,36 Z" {...gp} />
+          {ov(horse)}
         </svg>
       );
+    }
 
-    case 'b': // Bishop
+    /* ──────────── BISHOP ──────────── */
+    case 'b': {
+      const body = 'M 18.5,35 C 14,28.5 14,17 20,11.5 C 21.5,10 24,10 25.5,11.5 C 31.5,17 31.5,28.5 27,35 Z';
+      const base = 'M 10,37 C 10,39 15.5,40.5 22.5,40.5 C 29.5,40.5 35,39 35,37 L 33,35 L 12,35 Z';
       return (
-        <svg viewBox="0 0 45 45" className={className} width="100%" height="100%">
-          <defs>
-            <linearGradient id={`bishopGrad-${color}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={isWhite ? '#ffffff' : '#2d3142'} />
-              <stop offset="100%" stopColor={isWhite ? '#cbd5e1' : '#12141e'} />
-            </linearGradient>
-          </defs>
-          <circle cx="22.5" cy="8" r="2.5" fill={`url(#bishopGrad-${color})`} stroke={isWhite ? '#1e293b' : '#94a3b8'} strokeWidth="1.5" />
-          <path
-            d="M 17,35 C 13,29 13,19 19,13 C 21,11 24,11 26,13 C 32,19 32,29 28,35 z"
-            fill={`url(#bishopGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          <path d="M 22.5,16 L 22.5,26 M 19,20 L 26,20" stroke={isWhite ? '#1e293b' : '#c084fc'} strokeWidth="1.5" strokeLinecap="round" />
-          <path
-            d="M 12,36 C 12,39 16,40 22.5,40 C 29,40 33,39 33,36 z"
-            fill={`url(#bishopGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
+        <svg {...sv}>{defs}
+          <circle cx="22.5" cy="8" r="3" {...gp} />
+          <path d={body} {...gp} />
+          {/* Cross */}
+          <path d="M 22.5,15 L 22.5,27 M 17.5,21 L 27.5,21"
+            stroke={accent} strokeWidth="1.5" strokeLinecap="round" fill="none" />
+          {/* Waist band */}
+          <path d="M 18,33 L 27,33" stroke={accent} strokeWidth="1.2" strokeLinecap="round" fill="none" />
+          <path d={base} {...gp} />
+          {ov(body)}
         </svg>
       );
+    }
 
-    case 'r': // Rook
+    /* ──────────── ROOK ──────────── */
+    case 'r': {
+      const crenels = 'M 11,20 L 11,14 L 14,14 L 14,18 L 18,18 L 18,14 L 22,14 L 22,18 L 27,18 L 27,14 L 31,14 L 31,18 L 34,18 L 34,14 L 34,20 Z';
+      const body    = 'M 11,20 L 11,35 L 34,35 L 34,20 Z';
+      const base    = 'M 9,37 C 9,39 15,40.5 22.5,40.5 C 30,40.5 36,39 36,37 L 34,35 L 11,35 Z';
       return (
-        <svg viewBox="0 0 45 45" className={className} width="100%" height="100%">
-          <defs>
-            <linearGradient id={`rookGrad-${color}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={isWhite ? '#ffffff' : '#2d3142'} />
-              <stop offset="100%" stopColor={isWhite ? '#cbd5e1' : '#12141e'} />
-            </linearGradient>
-          </defs>
-          <path
-            d="M 11,36 L 34,36 L 34,39 L 11,39 z"
-            fill={`url(#rookGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          <path
-            d="M 14,36 L 14,26 L 31,26 L 31,36 z"
-            fill={`url(#rookGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          <path
-            d="M 12,26 L 12,14 L 16,14 L 16,18 L 20,18 L 20,14 L 25,14 L 25,18 L 29,18 L 29,14 L 33,14 L 33,26 z"
-            fill={`url(#rookGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          <path d="M 14,20 L 31,20" stroke={isWhite ? '#334155' : '#c084fc'} strokeWidth="1.5" opacity="0.7" />
+        <svg {...sv}>{defs}
+          <path d={crenels} {...gp} />
+          <path d={body}    {...gp} />
+          <path d="M 13,22 L 32,22" stroke={accent} strokeWidth="1.2" fill="none" />
+          <path d={base}    {...gp} />
+          {ov(body)}
         </svg>
       );
+    }
 
-    case 'q': // Queen
+    /* ──────────── QUEEN ──────────── */
+    case 'q': {
+      const crownBody = 'M 9,14 L 13.5,30 L 31.5,30 L 36,14 L 30,22 L 22.5,12 L 15,22 Z';
+      const skirt     = 'M 13.5,30 L 12,34 L 33,34 L 31.5,30 Z';
+      const base      = 'M 10,37 C 10,39 15.5,40.5 22.5,40.5 C 29.5,40.5 35,39 35,37 L 33,34 L 12,34 Z';
       return (
-        <svg viewBox="0 0 45 45" className={className} width="100%" height="100%">
-          <defs>
-            <linearGradient id={`queenGrad-${color}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={isWhite ? '#ffffff' : '#2d3142'} />
-              <stop offset="100%" stopColor={isWhite ? '#cbd5e1' : '#12141e'} />
-            </linearGradient>
-          </defs>
-          <circle cx="8" cy="12" r="2" fill={isWhite ? '#0284c7' : '#c084fc'} />
-          <circle cx="15" cy="9" r="2" fill={isWhite ? '#0284c7' : '#c084fc'} />
-          <circle cx="22.5" cy="8" r="2.2" fill={isWhite ? '#0284c7' : '#c084fc'} />
-          <circle cx="30" cy="9" r="2" fill={isWhite ? '#0284c7' : '#c084fc'} />
-          <circle cx="37" cy="12" r="2" fill={isWhite ? '#0284c7' : '#c084fc'} />
-          <path
-            d="M 9,14 L 13,28 L 32,28 L 36,14 L 29,22 L 22.5,12 L 16,22 z"
-            fill={`url(#queenGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M 11,36 L 34,36 L 34,39 L 11,39 z"
-            fill={`url(#queenGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          <path
-            d="M 13,28 L 11,36 L 34,36 L 32,28 z"
-            fill={`url(#queenGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
+        <svg {...sv}>{defs}
+          <circle cx="8.5"  cy="12" r="2.8" {...gp} />
+          <circle cx="15.5" cy="9"  r="2.8" {...gp} />
+          <circle cx="22.5" cy="7.5" r="3"  {...gp} />
+          <circle cx="29.5" cy="9"  r="2.8" {...gp} />
+          <circle cx="36.5" cy="12" r="2.8" {...gp} />
+          <path d={crownBody} {...gp} />
+          <path d={skirt}     {...gp} />
+          <path d={base}      {...gp} />
+          {ov(crownBody)}
         </svg>
       );
+    }
 
-    case 'k': // King
+    /* ──────────── KING ──────────── */
+    case 'k': {
+      const crown = 'M 15,20 C 11,13 20.5,8 22.5,13 C 24.5,8 34,13 30,20 C 27,25 25,27.5 22.5,28.5 C 20,27.5 18,25 15,20 Z';
+      const skirt = 'M 14,28.5 L 11,35 L 34,35 L 31,28.5 Z';
+      const base  = 'M 9,37 C 9,39 15,40.5 22.5,40.5 C 30,40.5 36,39 36,37 L 34,35 L 11,35 Z';
       return (
-        <svg viewBox="0 0 45 45" className={className} width="100%" height="100%">
-          <defs>
-            <linearGradient id={`kingGrad-${color}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={isWhite ? '#ffffff' : '#2d3142'} />
-              <stop offset="100%" stopColor={isWhite ? '#cbd5e1' : '#12141e'} />
-            </linearGradient>
-          </defs>
-          {/* King Crown Cross */}
-          <path d="M 22.5,5 L 22.5,11 M 19.5,8 L 25.5,8" stroke={isWhite ? '#0284c7' : '#c084fc'} strokeWidth="2" strokeLinecap="round" />
-          <path
-            d="M 14,20 C 10,13 19,10 22.5,14 C 26,10 35,13 31,20 C 27,24 25,27 22.5,28 C 20,27 18,24 14,20 z"
-            fill={`url(#kingGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          <path
-            d="M 13,28 L 11,36 L 34,36 L 32,28 z"
-            fill={`url(#kingGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
-          <path
-            d="M 11,36 L 34,36 L 34,39 L 11,39 z"
-            fill={`url(#kingGrad-${color})`}
-            stroke={isWhite ? '#1e293b' : '#94a3b8'}
-            strokeWidth="1.5"
-          />
+        <svg {...sv}>{defs}
+          {/* Cross */}
+          <path d="M 22.5,4 L 22.5,12.5" stroke={stroke} strokeWidth="2.8" strokeLinecap="round" />
+          <path d="M 18,8 L 27,8" stroke={stroke} strokeWidth="2.8" strokeLinecap="round" />
+          {isW && <path d="M 18.5,8 L 26.5,8" stroke="rgba(255,255,255,0.7)" strokeWidth="1.2" strokeLinecap="round" />}
+          <path d={crown} {...gp} />
+          <path d={skirt} {...gp} />
+          <path d={base}  {...gp} />
+          {ov(crown)}
+          {ov(skirt)}
         </svg>
       );
+    }
 
-    default:
-      return null;
+    default: return null;
   }
 }

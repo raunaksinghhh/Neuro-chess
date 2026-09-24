@@ -8,7 +8,8 @@ import {
   Volume2,
   VolumeX,
   Settings,
-  BrainCircuit
+  BrainCircuit,
+  Zap
 } from 'lucide-react';
 import './Header.css';
 
@@ -17,7 +18,8 @@ export function Header({
   onSelectMode,
   soundEnabled,
   onToggleSound,
-  onOpenSettings
+  onOpenSettings,
+  isCppConnected = false
 }) {
   const navTabs = [
     { id: 'play', label: 'Play AI', icon: Gamepad2 },
@@ -36,7 +38,24 @@ export function Header({
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="brand-title">Neuro-Chess</span>
-          <span className="brand-badge">v2.0 AI</span>
+          <span className="brand-badge">v2.0</span>
+          {isCppConnected ? (
+            <span
+              className="badge badge-emerald"
+              title="C++ Engine Server Active on Port 8080 (3.9M NPS)"
+              style={{ fontSize: '10px', padding: '2px 8px' }}
+            >
+              <Zap size={11} /> C++ Core (8080)
+            </span>
+          ) : (
+            <span
+              className="badge badge-good"
+              title="Browser JS Engine (C++ Server offline)"
+              style={{ fontSize: '10px', padding: '2px 8px' }}
+            >
+              JS Client
+            </span>
+          )}
         </div>
       </div>
 

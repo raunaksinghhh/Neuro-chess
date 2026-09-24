@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Activity } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { NeuralVisualizer } from './NeuralVisualizer';
 import './EnginePanel.css';
 
@@ -7,6 +7,7 @@ export function EnginePanel({
   engineAnalysis,
   activePersona,
   isThinking = false,
+  activeMode = 'play',
   showHeatmap,
   onToggleHeatmap,
   showThreats,
@@ -18,6 +19,8 @@ export function EnginePanel({
   const depth = engineAnalysis?.depth || 0;
   const nodes = engineAnalysis?.nodes ? (engineAnalysis.nodes > 1000 ? `${(engineAnalysis.nodes / 1000).toFixed(1)}k` : engineAnalysis.nodes) : 0;
   const nps = engineAnalysis?.nps ? (engineAnalysis.nps > 1000 ? `${(engineAnalysis.nps / 1000).toFixed(1)}k` : engineAnalysis.nps) : 0;
+
+  const showCandidateLines = activeMode === 'analysis' || activeMode === 'engine_vs_engine';
 
   return (
     <div className="engine-panel">
@@ -50,13 +53,13 @@ export function EnginePanel({
           <span className="metric-value">{nodes}</span>
         </div>
         <div className="metric-item">
-          <span className="metric-label">NPS</span>
+          <span className="metric-label">Speed</span>
           <span className="metric-value">{nps} /s</span>
         </div>
       </div>
 
-      {/* Candidate PV Lines */}
-      {engineAnalysis?.lines && engineAnalysis.lines.length > 0 && (
+      {/* Candidate PV Lines (Only in Analysis Mode) */}
+      {showCandidateLines && engineAnalysis?.lines && engineAnalysis.lines.length > 0 && (
         <div className="engine-lines">
           <div className="lines-header">Top Candidate Lines (Multi-PV)</div>
           {engineAnalysis.lines.map((line, idx) => {
@@ -81,15 +84,17 @@ export function EnginePanel({
         </div>
       )}
 
-      {/* Neural Overlays Toggle Bar */}
-      <NeuralVisualizer
-        showHeatmap={showHeatmap}
-        onToggleHeatmap={onToggleHeatmap}
-        showThreats={showThreats}
-        onToggleThreats={onToggleThreats}
-        showEngineArrow={showEngineArrow}
-        onToggleEngineArrow={onToggleEngineArrow}
-      />
+      {/* Neural Overlays Toggle Bar (Only in Analysis or if enabled) */}
+      {activeMode === 'analysis' && (
+        <NeuralVisualizer
+          showHeatmap={showHeatmap}
+          onToggleHeatmap={onToggleHeatmap}
+          showThreats={showThreats}
+          onToggleThreats={onToggleThreats}
+          showEngineArrow={showEngineArrow}
+          onToggleEngineArrow={onToggleEngineArrow}
+        />
+      )}
     </div>
   );
 }
