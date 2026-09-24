@@ -93,10 +93,10 @@ export function FENModal({ isOpen, onClose, currentFEN, currentPGN, onLoadFEN, o
             rows={activeTab === 'fen' ? 2 : 4}
             style={{
               width: '100%',
-              background: 'rgba(0,0,0,0.3)',
+              background: 'var(--bg-tertiary)',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-md)',
-              color: 'var(--neon-cyan)',
+              color: 'var(--accent-primary)',
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
               padding: '8px',

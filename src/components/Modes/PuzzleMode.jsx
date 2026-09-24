@@ -29,7 +29,7 @@ export function PuzzleMode({
 
       {/* Active Puzzle Info Card */}
       {currentPuzzle && (
-        <div className="glass-panel" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(255, 255, 255, 0.02)' }}>
+        <div className="glass-panel" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--bg-tertiary)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
               {currentPuzzle.title}

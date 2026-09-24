@@ -9,7 +9,7 @@ export const AI_PERSONAS = [
     depth: 1,
     randomness: 0.45,
     blunderChance: 0.35,
-    avatar: '🌱',
+    avatar: 'SP',
     description: 'Makes occasional casual mistakes. Great for beginners learning piece movement and tactics.',
     color: '#10b981'
   },
@@ -21,7 +21,7 @@ export const AI_PERSONAS = [
     depth: 2,
     randomness: 0.2,
     blunderChance: 0.15,
-    avatar: '⚡',
+    avatar: 'BY',
     description: 'Solid basic openings and tactics. Punishes obvious blunders.',
     color: '#3b82f6'
   },
@@ -33,7 +33,7 @@ export const AI_PERSONAS = [
     depth: 3,
     randomness: 0.05,
     blunderChance: 0.04,
-    avatar: '🔥',
+    avatar: 'TL',
     description: 'Prefers dynamic sacrifices, king attacks, and sharp tactical positions.',
     color: '#f59e0b'
   },
@@ -45,7 +45,7 @@ export const AI_PERSONAS = [
     depth: 4,
     randomness: 0.0,
     blunderChance: 0.0,
-    avatar: '👑',
+    avatar: 'VX',
     description: 'Grinds out incremental advantages with positional mastery and endgames.',
     color: '#a855f7'
   },
@@ -57,7 +57,7 @@ export const AI_PERSONAS = [
     depth: 5,
     randomness: 0.0,
     blunderChance: 0.0,
-    avatar: '🧠',
+    avatar: 'NZ',
     description: 'Maximum depth Alpha-Beta minimax engine with neural evaluation and deep quiescence search.',
     color: '#00f0ff'
   }

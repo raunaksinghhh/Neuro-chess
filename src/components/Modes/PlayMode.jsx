@@ -42,7 +42,7 @@ export function PlayMode({
       <div
         style={{
           padding: '10px 14px',
-          background: '#0d1117',
+          background: 'var(--bg-tertiary)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           display: 'flex',
@@ -70,7 +70,7 @@ export function PlayMode({
           <div
             style={{
               padding: '6px 10px',
-              background: '#0d1117',
+              background: 'var(--bg-tertiary)',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-sm)',
               display: 'flex',
@@ -87,7 +87,7 @@ export function PlayMode({
           <div
             style={{
               padding: '6px 10px',
-              background: '#0d1117',
+              background: 'var(--bg-tertiary)',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-sm)',
               display: 'flex',

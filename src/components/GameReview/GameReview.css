@@ -6,6 +6,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
 .review-header {
@@ -28,7 +29,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-tertiary);
   border-radius: var(--radius-md);
   padding: 12px;
   border: 1px solid var(--border-subtle);
@@ -51,7 +52,7 @@
   font-size: 24px;
   font-weight: 800;
   font-family: var(--font-display);
-  background: linear-gradient(135deg, #00f0ff 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -71,13 +72,14 @@
   font-family: var(--font-mono);
   padding: 4px 6px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
 }
 
 .class-white-count {
   text-align: left;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .class-label {
@@ -87,19 +89,20 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  color: var(--text-secondary);
 }
 
 .class-black-count {
   text-align: right;
   font-weight: 700;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 /* Evaluation SVG Chart */
 .eval-chart-wrapper {
   width: 100%;
   height: 120px;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--bg-tertiary);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
   position: relative;
