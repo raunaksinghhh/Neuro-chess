@@ -56,25 +56,57 @@ void HttpServer::stop() {
 }
 
 bool HttpServer::start() {
-    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    server_fd = socket(AF_INET6, SOCK_STREAM, 0);
+    bool is_ipv6 = true;
     if (server_fd < 0) {
-        std::cerr << "Failed to create socket\n";
-        return false;
+        server_fd = socket(AF_INET, SOCK_STREAM, 0);
+        is_ipv6 = false;
+        if (server_fd < 0) {
+            std::cerr << "Failed to create socket\n";
+            return false;
+        }
     }
 
     int opt = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    sockaddr_in address{};
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(port);
+    if (is_ipv6) {
+        int v6only = 0;
+        setsockopt(server_fd, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only));
+        sockaddr_in6 address{};
+        address.sin6_family = AF_INET6;
+        address.sin6_addr = in6addr_any;
+        address.sin6_port = htons(port);
 
-    if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-        std::cerr << "Failed to bind socket to port " << port << "\n";
-        close(server_fd);
-        server_fd = -1;
-        return false;
+        if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
+            std::cerr << "Failed to bind dual-stack socket, falling back to IPv4...\n";
+            close(server_fd);
+            server_fd = socket(AF_INET, SOCK_STREAM, 0);
+            if (server_fd >= 0) {
+                setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+                sockaddr_in addr4{};
+                addr4.sin_family = AF_INET;
+                addr4.sin_addr.s_addr = INADDR_ANY;
+                addr4.sin_port = htons(port);
+                if (bind(server_fd, (struct sockaddr*)&addr4, sizeof(addr4)) < 0) {
+                    std::cerr << "Failed to bind socket to port " << port << "\n";
+                    close(server_fd);
+                    server_fd = -1;
+                    return false;
+                }
+            }
+        }
+    } else {
+        sockaddr_in address{};
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(port);
+        if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
+            std::cerr << "Failed to bind socket to port " << port << "\n";
+            close(server_fd);
+            server_fd = -1;
+            return false;
+        }
     }
 
     if (listen(server_fd, 64) < 0) {
@@ -87,11 +119,11 @@ bool HttpServer::start() {
     is_running = true;
     std::cout << "========================================================\n";
     std::cout << "  ⚡ Neuro-Chess C++ Engine Server Active on Port " << port << "\n";
-    std::cout << "  🚀 Endpoints: /eval, /move, /health\n";
+    std::cout << "  🚀 Endpoints: /eval, /move, /health (IPv4 & IPv6)\n";
     std::cout << "========================================================\n";
 
     while (is_running) {
-        sockaddr_in client_addr{};
+        sockaddr_storage client_addr{};
         socklen_t client_len = sizeof(client_addr);
         int client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_len);
         if (client_fd < 0) {

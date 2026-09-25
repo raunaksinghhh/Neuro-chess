@@ -70,7 +70,7 @@ export function EnginePanel({
               <div
                 key={idx}
                 className="pv-line-card"
-                onClick={() => onSelectCandidateMove && onSelectCandidateMove(line.move)}
+                onClick={() => onSelectCandidateMove && onSelectCandidateMove({ from: line.from, to: line.to })}
                 style={{ cursor: onSelectCandidateMove ? 'pointer' : 'default' }}
               >
                 <div className="pv-move-badge">

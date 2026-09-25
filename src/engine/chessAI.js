@@ -167,7 +167,7 @@ export async function getEngineAnalysis(chessInstance, depth = 3, multiPV = 3) {
   const topLines = candidateMoves.slice(0, multiPV);
 
   return {
-    bestMove: bestMove ? bestMove.move : null,
+    bestMove: bestMove ? { from: bestMove.from, to: bestMove.to, san: bestMove.san } : null,
     score: bestMove ? bestMove.score : 0,
     depth,
     nodes: nodesEvaluated,

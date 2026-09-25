@@ -710,7 +710,10 @@ export default function App() {
               onOpenFENModal={() => setIsFENModalOpen(true)}
               isContinuousEval={isContinuousEval}
               onToggleContinuousEval={() => setIsContinuousEval((e) => !e)}
-              onAnalyzeDeep={() => runEvaluation(5)}
+              onAnalyzeDeep={async () => {
+                setShowEngineArrow(true);
+                await runEvaluation(5);
+              }}
             />
           )}
 

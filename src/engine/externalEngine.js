@@ -30,22 +30,38 @@ export class ExternalEngineBridge {
       return false;
     }
 
-    try {
-      const res = await fetch(`${this.url}/health`, {
-        signal: AbortSignal.timeout(1200)
-      });
-      if (res.ok) {
-        const data = await res.json();
-        this.isConnected = true;
-        this.engineInfo = data.engine || 'C++ Core';
-        this.notify();
-        return true;
+    const tryFetch = async (targetUrl) => {
+      try {
+        const res = await fetch(`${targetUrl}/health`, {
+          signal: AbortSignal.timeout(1200)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          this.url = targetUrl;
+          this.isConnected = true;
+          this.engineInfo = data.engine || 'C++ Core';
+          this.notify();
+          return true;
+        }
+      } catch {
+        return false;
       }
-    } catch {
-      this.isConnected = false;
-      this.notify();
       return false;
+    };
+
+    if (await tryFetch(this.url)) return true;
+
+    // Fallback: if localhost failed, try 127.0.0.1 (or vice versa)
+    if (this.url.includes('localhost')) {
+      const fallbackUrl = this.url.replace('localhost', '127.0.0.1');
+      if (await tryFetch(fallbackUrl)) return true;
+    } else if (this.url.includes('127.0.0.1')) {
+      const fallbackUrl = this.url.replace('127.0.0.1', 'localhost');
+      if (await tryFetch(fallbackUrl)) return true;
     }
+
+    this.isConnected = false;
+    this.notify();
     return false;
   }
 
