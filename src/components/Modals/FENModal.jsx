@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { X, Copy, Upload, Check } from 'lucide-react';
 
 export function FENModal({ isOpen, onClose, currentFEN, currentPGN, onLoadFEN, onLoadPGN }) {
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState('fen');
   const [inputVal, setInputVal] = useState('');
   const [copied, setCopied] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  if (!isOpen) return null;
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);

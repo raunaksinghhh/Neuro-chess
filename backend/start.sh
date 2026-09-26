@@ -36,4 +36,4 @@ fi
 
 # ── Start the server ──────────────────────────────────────────────────────────
 echo "🚀 Starting engine server on port 8080..."
-exec ./neuro_engine_server
+exec ./neuro_engine_server "$@"

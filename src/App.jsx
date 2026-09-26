@@ -340,7 +340,11 @@ export default function App() {
           if (externalEngine.isConnected) {
             const cppRes = await externalEngine.queryEvaluation(currentFen, activePersona.depth || 4);
             if (cppRes?.bestMove) {
-              aiMove = { from: cppRes.bestMove.from, to: cppRes.bestMove.to };
+              aiMove = {
+                from: cppRes.bestMove.from,
+                to: cppRes.bestMove.to,
+                promotion: cppRes.bestMove.promotion || 'q'
+              };
             }
           }
 
@@ -349,7 +353,11 @@ export default function App() {
             const depth = Math.min(activePersona?.depth || 3, 3);
             const result = await workerEngine.search(currentFen, depth, activePersona, 4);
             if (result?.bestMove) {
-              aiMove = result.bestMove;
+              aiMove = {
+                from: result.bestMove.from,
+                to: result.bestMove.to,
+                promotion: result.bestMove.promotion || 'q'
+              };
             }
           }
 

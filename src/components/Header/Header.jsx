@@ -10,6 +10,7 @@ import {
   Settings,
   Zap
 } from 'lucide-react';
+import { externalEngine } from '../../engine/externalEngine';
 import './Header.css';
 
 export function Header({
@@ -46,10 +47,14 @@ export function Header({
           ) : (
             <span
               className="badge badge-good"
-              title="Browser JS Engine (C++ Server offline)"
-              style={{ fontSize: '10px', padding: '2px 8px' }}
+              title="Web Worker Engine Active — Click to connect C++ Server on :8080"
+              style={{ fontSize: '10px', padding: '2px 8px', cursor: 'pointer' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                externalEngine.checkHealth();
+              }}
             >
-              JS Client
+              Web Worker
             </span>
           )}
         </div>

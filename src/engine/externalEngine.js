@@ -53,50 +53,33 @@ export class ExternalEngineBridge {
       return false;
     }
 
-    const tryFetch = async (targetUrl) => {
-      try {
-        const res = await fetch(`${targetUrl}/health`, {
-          signal: AbortSignal.timeout(1500)
-        });
-        if (res.ok) {
-          const data = await res.json();
-          this.url = targetUrl;
-          this.isConnected = true;
-          this.engineInfo = data.engine || 'C++ Core';
-          this.notify();
-          return true;
-        }
-      } catch {
-        return false;
+    try {
+      const res = await fetch(`${this.url}/health`, {
+        signal: AbortSignal.timeout(1200)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        this.isConnected = true;
+        this.engineInfo = data.engine || 'C++ Core';
+        this.notify();
+        // Connected: keep a gentle 10s heartbeat
+        this._backoffMs = 10000;
+        this._scheduleNextCheck();
+        return true;
       }
-      return false;
-    };
-
-    let connected = await tryFetch(this.url);
-
-    if (!connected) {
-      // Try alternate localhost variant (localhost ↔ 127.0.0.1)
-      if (this.url.includes('localhost')) {
-        connected = await tryFetch(this.url.replace('localhost', '127.0.0.1'));
-      } else if (this.url.includes('127.0.0.1')) {
-        connected = await tryFetch(this.url.replace('127.0.0.1', 'localhost'));
-      }
+    } catch {
+      // Server offline — handled gracefully below
     }
 
-    if (connected) {
-      // Connected: poll every 5s (stable, low frequency)
-      this._backoffMs = 5000;
-      this._scheduleNextCheck();
-      return true;
-    }
-
-    // Offline: exponential backoff — 2s → 4s → 8s → 16s → 30s max
     const wasConnected = this.isConnected;
     this.isConnected = false;
-    if (wasConnected) this.notify(); // Only notify on state change
+    if (wasConnected) this.notify();
 
-    this._backoffMs = Math.min(this._backoffMs * 2, 30000);
-    this._scheduleNextCheck();
+    // Stop polling when offline — no more continuous ERR_CONNECTION_REFUSED spamming
+    if (this._backoffTimer) {
+      clearTimeout(this._backoffTimer);
+      this._backoffTimer = null;
+    }
     return false;
   }
 
@@ -120,7 +103,8 @@ export class ExternalEngineBridge {
             from: data.from,
             to: data.to,
             san: data.san || '',
-            uci: data.best_move
+            uci: data.best_move,
+            promotion: data.best_move && data.best_move.length === 5 ? data.best_move[4] : undefined
           },
           depth: data.depth,
           nodes: data.nodes,

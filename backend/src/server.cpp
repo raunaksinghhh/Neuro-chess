@@ -87,12 +87,15 @@ bool HttpServer::start() {
             server_fd = socket(AF_INET, SOCK_STREAM, 0);
             if (server_fd >= 0) {
                 setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+#ifdef SO_REUSEPORT
+                setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt));
+#endif
                 sockaddr_in addr4{};
                 addr4.sin_family = AF_INET;
                 addr4.sin_addr.s_addr = INADDR_ANY;
                 addr4.sin_port = htons(port);
                 if (bind(server_fd, (struct sockaddr*)&addr4, sizeof(addr4)) < 0) {
-                    std::cerr << "Failed to bind socket to port " << port << "\n";
+                    std::cerr << "Failed to bind socket to port " << port << ": " << strerror(errno) << "\n";
                     close(server_fd);
                     server_fd = -1;
                     return false;
@@ -105,7 +108,7 @@ bool HttpServer::start() {
         address.sin_addr.s_addr = INADDR_ANY;
         address.sin_port = htons(port);
         if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-            std::cerr << "Failed to bind socket to port " << port << "\n";
+            std::cerr << "Failed to bind socket to port " << port << ": " << strerror(errno) << "\n";
             close(server_fd);
             server_fd = -1;
             return false;
@@ -205,8 +208,13 @@ std::string HttpServer::process_request(const std::string& method, const std::st
         Position pos;
         pos.load_fen(fen);
 
-        EvalResult detailed_eval = Evaluator::evaluate_detailed(pos);
-        SearchResult res = searcher.search(pos, depth, 3);
+        EvalResult detailed_eval;
+        SearchResult res;
+        {
+            std::lock_guard<std::mutex> lock(search_mutex);
+            detailed_eval = Evaluator::evaluate_detailed(pos);
+            res = searcher.search(pos, depth, 3);
+        }
 
         std::ostringstream json;
         json << "{\n";

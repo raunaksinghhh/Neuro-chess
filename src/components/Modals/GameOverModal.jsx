@@ -11,8 +11,6 @@ export function GameOverModal({
   onRematch,
   onOpenReview
 }) {
-  if (!isOpen) return null;
-
   const isWin =
     (result === '1-0' && playerColor === 'w') ||
     (result === '0-1' && playerColor === 'b');
@@ -22,14 +20,16 @@ export function GameOverModal({
   const isDraw = result === '1/2-1/2';
 
   useEffect(() => {
-    if (isWin) {
+    if (isOpen && isWin) {
       confetti({
         particleCount: 80,
         spread: 70,
         origin: { y: 0.6 }
       });
     }
-  }, [isWin]);
+  }, [isOpen, isWin]);
+
+  if (!isOpen) return null;
 
   let title = 'Game Over';
   let badgeColor = 'badge-purple';
