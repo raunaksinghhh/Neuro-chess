@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { PieceIcon } from './PieceIcons';
 
 export function Square({
@@ -79,3 +79,7 @@ export function Square({
     </div>
   );
 }
+
+// Memoize: only re-render when this square's own props change.
+// Without this, clicking any square triggers all 64 squares to re-render.
+export const MemoSquare = memo(Square);

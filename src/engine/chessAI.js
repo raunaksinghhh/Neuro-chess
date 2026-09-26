@@ -123,7 +123,8 @@ function minimax(chess, depth, alpha, beta, isMaximizing) {
 }
 
 /**
- * Finds best move and calculates candidate Multi-PV lines
+ * Finds best move and calculates candidate Multi-PV lines.
+ * Uses top-N move pruning to avoid searching all moves at deep depth.
  */
 export async function getEngineAnalysis(chessInstance, depth = 3, multiPV = 3) {
   const startTime = performance.now();
@@ -136,11 +137,16 @@ export async function getEngineAnalysis(chessInstance, depth = 3, multiPV = 3) {
   const moves = chess.moves({ verbose: true });
   if (moves.length === 0) return null;
 
+  // Pre-sort by MVV-LVA so we search the most promising moves first
   moves.sort((a, b) => scoreMove(b, chess) - scoreMove(a, chess));
+
+  // Prune candidates: at depth >= 4 only search top 20 moves to keep JS engine responsive
+  const MAX_CANDIDATES = depth >= 4 ? 20 : moves.length;
+  const searchMoves = moves.slice(0, MAX_CANDIDATES);
 
   const candidateMoves = [];
 
-  for (const move of moves) {
+  for (const move of searchMoves) {
     chess.move(move);
     const score = minimax(chess, depth - 1, -Infinity, Infinity, !isMaximizing);
     chess.undo();
@@ -150,7 +156,7 @@ export async function getEngineAnalysis(chessInstance, depth = 3, multiPV = 3) {
       san: move.san,
       from: move.from,
       to: move.to,
-      score, // In centipawns
+      score,
       displayScore: isMaximizing ? score : -score
     });
   }
@@ -179,9 +185,12 @@ export async function getEngineAnalysis(chessInstance, depth = 3, multiPV = 3) {
 
 /**
  * Compute move for AI player considering persona (depth, blunder chance, randomness)
+ * Depth is capped at 3 for the JS fallback to keep the main thread responsive.
+ * The C++ backend handles deeper search (depth 4-6) when available.
  */
 export async function getAIMove(chessInstance, persona) {
-  const depth = persona.depth || 3;
+  // Cap JS fallback depth at 3 — C++ backend handles deeper searches
+  const depth = Math.min(persona.depth || 3, 3);
   const analysis = await getEngineAnalysis(chessInstance, depth, 4);
   if (!analysis || !analysis.bestMove) return null;
 

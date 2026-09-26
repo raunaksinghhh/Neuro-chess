@@ -17,7 +17,8 @@ import { GameOverModal } from './components/Modals/GameOverModal';
 import { soundManager } from './utils/sound';
 import { detectOpening, exportPGN } from './utils/pgnParser';
 import { calculateNeuralHeatmap, evaluateBoard } from './engine/neuralEval';
-import { getEngineAnalysis, getAIMove, classifyMove } from './engine/chessAI';
+import { classifyMove } from './engine/chessAI';
+import { workerEngine } from './engine/workerEngine';
 import { externalEngine } from './engine/externalEngine';
 import { AI_PERSONAS, getPersonaByElo } from './engine/personas';
 import { CHESS_PUZZLES } from './engine/puzzles';
@@ -51,6 +52,7 @@ export default function App() {
   const [showThreats, setShowThreats] = useState(false);
   const [showEngineArrow, setShowEngineArrow] = useState(false);
   const [isContinuousEval, setIsContinuousEval] = useState(true);
+  const evalDebounceRef = useRef(null);
 
   // C++ Engine Backend State
   const [isCppConnected, setIsCppConnected] = useState(false);
@@ -98,13 +100,8 @@ export default function App() {
     const unsubscribe = externalEngine.subscribe((connected) => {
       setIsCppConnected(connected);
     });
-
-    const interval = setInterval(() => {
-      externalEngine.checkHealth();
-    }, 3000);
-
+    // externalEngine schedules its own checks with exponential backoff internally
     return () => {
-      clearInterval(interval);
       unsubscribe();
     };
   }, [externalEngineUrl]);
@@ -138,33 +135,36 @@ export default function App() {
     };
   }, [showEngineArrow, engineAnalysis]);
 
-  // Run engine analysis (C++ Backend or Client Fallback)
+  // Run engine analysis via Web Worker — ZERO main-thread blocking
   const runEvaluation = useCallback(
-    async (depth = 4) => {
+    (depth = 3) => {
       if (!isContinuousEval) return;
-      try {
-        const curFen = chess.fen();
-        // Try C++ Backend first
-        if (externalEngine.isConnected) {
-          const cppResult = await externalEngine.queryEvaluation(curFen, depth);
-          if (cppResult) {
-            setEngineAnalysis(cppResult);
-            return;
+      // Debounce: cancel the previous evaluation timer
+      if (evalDebounceRef.current) clearTimeout(evalDebounceRef.current);
+      evalDebounceRef.current = setTimeout(async () => {
+        try {
+          const curFen = chess.fen();
+          // Try C++ Backend first (fastest — native binary)
+          if (externalEngine.isConnected) {
+            const cppResult = await externalEngine.queryEvaluation(curFen, depth);
+            if (cppResult) {
+              setEngineAnalysis(cppResult);
+              return;
+            }
           }
+          // JS Web Worker fallback — runs on separate OS thread
+          const result = await workerEngine.search(curFen, depth, activePersona, 3);
+          if (result) setEngineAnalysis(result);
+        } catch (err) {
+          console.error('Analysis error:', err);
         }
-
-        // Client Fallback
-        const jsAnalysis = await getEngineAnalysis(chess, depth, 3);
-        setEngineAnalysis(jsAnalysis);
-      } catch (err) {
-        console.error('Analysis error:', err);
-      }
+      }, 80); // 80ms debounce — skips rapid moves, lets board settle
     },
-    [chess, isContinuousEval]
+    [chess, isContinuousEval, activePersona]
   );
 
   useEffect(() => {
-    runEvaluation(activePersona?.depth || 4);
+    runEvaluation(Math.min(activePersona?.depth || 3, 3));
   }, [fen, runEvaluation, activePersona]);
 
   // Handle Game Over
@@ -180,12 +180,18 @@ export default function App() {
     []
   );
 
-  // Play Mode Timers Loop
+  // Keep a ref to chess.turn() so the timer interval never needs to re-subscribe
+  const chessTurnRef = useRef(chess.turn());
+  useEffect(() => {
+    chessTurnRef.current = chess.turn();
+  }, [fen]);
+
+  // Play Mode Timers Loop — uses ref for turn; no chess.turn() in deps (avoids rapid re-subscribes)
   useEffect(() => {
     if (!isGameActive || timeControl.initial === null) return;
 
     const timer = setInterval(() => {
-      if (chess.turn() === 'w') {
+      if (chessTurnRef.current === 'w') {
         setWhiteTime((prev) => {
           if (prev <= 1) {
             handleGameOver('0-1', 'White Flagged (Timeout)');
@@ -207,7 +213,7 @@ export default function App() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isGameActive, chess.turn(), timeControl, handleGameOver]);
+  }, [isGameActive, timeControl, handleGameOver]);
 
   // Check board state after every move
   const checkGameTermination = useCallback(() => {
@@ -235,14 +241,15 @@ export default function App() {
     return false;
   }, [chess, handleGameOver]);
 
-  // Dispatch a chess move
+  // Dispatch a chess move — board repaints immediately; static eval is fast (~0.1ms, no search)
   const makeMove = useCallback(
     (moveObj) => {
       try {
-        const prevEval = evaluateBoard(chess);
         const isWhiteTurn = chess.turn() === 'w';
 
-        // Check if move is engine best
+        // evaluateBoard is a fast O(32) PST scan — safe to run synchronously (<1ms)
+        const prevEval = evaluateBoard(chess);
+
         const isEngineBest =
           engineAnalysis?.bestMove &&
           engineAnalysis.bestMove.from === moveObj.from &&
@@ -251,10 +258,10 @@ export default function App() {
         const moveResult = chess.move(moveObj);
         if (!moveResult) return false;
 
-        const currEval = evaluateBoard(chess);
-        const classification = classifyMove(prevEval, currEval, isWhiteTurn, isEngineBest);
+        // Update chess turn ref immediately
+        chessTurnRef.current = chess.turn();
 
-        // Sound triggers
+        // Sound triggers — synchronous, fast
         if (chess.inCheck()) {
           soundManager.playCheck();
         } else if (moveResult.captured) {
@@ -265,6 +272,11 @@ export default function App() {
           soundManager.playMove();
         }
 
+        // Fast static eval of new position + classify quality
+        const currEval = evaluateBoard(chess);
+        const classification = classifyMove(prevEval, currEval, isWhiteTurn, isEngineBest);
+
+        // Build move record with real eval data for Game Review
         const moveRecord = {
           ...moveResult,
           evalBefore: prevEval,
@@ -272,7 +284,6 @@ export default function App() {
           classification
         };
 
-        // Use functional setState to avoid stale history closure
         setHistory((prev) => {
           const newHistory = [...prev, moveRecord];
           setCurrentMoveIndex(newHistory.length - 1);
@@ -292,7 +303,11 @@ export default function App() {
           else setBlackTime((t) => (t ? t + timeControl.inc : t));
         }
 
-        checkGameTermination();
+        // Defer game-over check until after the board has painted
+        setTimeout(() => {
+          checkGameTermination();
+        }, 0);
+
         return moveResult;
       } catch (err) {
         console.error('Invalid move attempt:', err);
@@ -310,17 +325,18 @@ export default function App() {
     const currentTurn = chess.turn();
     const isAITurn = currentTurn !== playerColor;
 
-    // Use ref to prevent stale closure re-entrancy
     if (isAITurn && !isThinkingRef.current) {
       isThinkingRef.current = true;
       setIsThinking(true);
-      const delay = isCppConnected ? 300 : Math.max(400, Math.random() * 500 + 300);
+      // Minimum delay so "AI Thinking" badge renders before search begins
+      const delay = isCppConnected ? 250 : 300;
 
       const timer = setTimeout(async () => {
         try {
           let aiMove = null;
           const currentFen = chess.fen();
 
+          // 1) Try C++ binary backend (fastest — runs as native subprocess)
           if (externalEngine.isConnected) {
             const cppRes = await externalEngine.queryEvaluation(currentFen, activePersona.depth || 4);
             if (cppRes?.bestMove) {
@@ -328,8 +344,13 @@ export default function App() {
             }
           }
 
+          // 2) JS Web Worker fallback — runs on a separate thread, never blocks UI
           if (!aiMove) {
-            aiMove = await getAIMove(chess, activePersona);
+            const depth = Math.min(activePersona?.depth || 3, 3);
+            const result = await workerEngine.search(currentFen, depth, activePersona, 4);
+            if (result?.bestMove) {
+              aiMove = result.bestMove;
+            }
           }
 
           if (aiMove) {
@@ -615,6 +636,7 @@ export default function App() {
 
             <Chessboard
               chess={chess}
+              fen={fen}
               onMove={activeMode === 'puzzles' ? handlePuzzleMove : makeMove}
               orientation={orientation}
               boardTheme={boardTheme}

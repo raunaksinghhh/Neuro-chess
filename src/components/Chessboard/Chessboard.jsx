@@ -1,5 +1,5 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Square } from './Square';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { MemoSquare as Square } from './Square';
 import { ArrowOverlay } from './ArrowOverlay';
 import { PromotionModal } from './PromotionModal';
 import './Chessboard.css';
@@ -9,6 +9,7 @@ const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
 export function Chessboard({
   chess,
+  fen,           // pass current FEN so useMemo deps update correctly
   onMove,
   orientation = 'white',
   boardTheme = 'cyber',
@@ -33,7 +34,7 @@ export function Chessboard({
     setSelectedSquare(null);
   }, [chess?.fen()]);
 
-  // Compute legal moves for selected square
+  // Compute legal moves for selected square — fen in deps so this re-runs on position change
   const legalMoves = useMemo(() => {
     if (!selectedSquare || !chess || !isInteractive) return [];
     try {
@@ -41,7 +42,7 @@ export function Chessboard({
     } catch {
       return [];
     }
-  }, [selectedSquare, chess, isInteractive]);
+  }, [selectedSquare, chess, isInteractive, fen]);
 
   // Map legal targets for fast lookup
   const legalTargetsMap = useMemo(() => {
@@ -52,7 +53,7 @@ export function Chessboard({
     return map;
   }, [legalMoves]);
 
-  // Check state & King square
+  // Check state & King square — fen in deps so this re-runs on position change
   const inCheck = chess ? chess.inCheck() : false;
   const kingCheckSquare = useMemo(() => {
     if (!inCheck || !chess) return null;
@@ -67,10 +68,9 @@ export function Chessboard({
       }
     }
     return null;
-  }, [inCheck, chess]);
-
-  // Handle Square Selection & Move Dispatch
-  const handleSquareClick = (square) => {
+  }, [inCheck, chess, fen]);
+  // Stable click handler — useCallback prevents Square memo from breaking
+  const handleSquareClick = useCallback((square) => {
     if (!isInteractive) return;
 
     // Clear user arrows on left-click
@@ -123,9 +123,9 @@ export function Chessboard({
         setSelectedSquare(null);
       }
     }
-  };
+  }, [isInteractive, userArrows, highlightedSquares, selectedSquare, chess, legalTargetsMap, autoQueen, onMove]);
 
-  const handlePromotionSelect = (promotionPiece) => {
+  const handlePromotionSelect = useCallback((promotionPiece) => {
     if (pendingPromotion) {
       onMove({
         from: pendingPromotion.from,
@@ -135,10 +135,10 @@ export function Chessboard({
       setPendingPromotion(null);
       setSelectedSquare(null);
     }
-  };
+  }, [pendingPromotion, onMove]);
 
-  // Drag-and-Drop handlers
-  const handleDragStart = (e, square, piece) => {
+  // Drag-and-Drop handlers (stable refs for memo)
+  const handleDragStart = useCallback((e, square, piece) => {
     if (!isInteractive) return;
     if (piece.color !== chess.turn()) {
       e.preventDefault();
@@ -146,7 +146,7 @@ export function Chessboard({
     }
     setSelectedSquare(square);
     e.dataTransfer.setData('text/plain', square);
-  };
+  }, [isInteractive, chess]);
 
   const handleDrop = (e, targetSquare) => {
     e.preventDefault();
