@@ -60,7 +60,7 @@ export default function App() {
   const [engineAnalysis, setEngineAnalysis] = useState(null);
   const [isThinking, setIsThinking] = useState(false);
   const isThinkingRef = useRef(false); // Ref to avoid stale closure in async AI turn
-  const [activePersona, setActivePersona] = useState(AI_PERSONAS[2]); // Tal default
+  const [activePersona, setActivePersona] = useState(AI_PERSONAS[2]); // Bishop (Advanced) default
   const [externalEngineUrl, setExternalEngineUrl] = useState('http://localhost:8080');
 
   // Play vs AI Match State (Defaults to active unlimited game)
@@ -71,8 +71,8 @@ export default function App() {
   const [isGameActive, setIsGameActive] = useState(true);
 
   // Engine vs Engine Match State
-  const [whitePersona, setWhitePersona] = useState(AI_PERSONAS[2]); // Tal
-  const [blackPersona, setBlackPersona] = useState(AI_PERSONAS[3]); // Magnus
+  const [whitePersona, setWhitePersona] = useState(AI_PERSONAS[2]); // Bishop (Advanced)
+  const [blackPersona, setBlackPersona] = useState(AI_PERSONAS[3]); // Knight (Expert)
   const [isSimulationRunning, setIsSimulationRunning] = useState(false);
   const [simSpeedMs, setSimSpeedMs] = useState(800);
 

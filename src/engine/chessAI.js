@@ -219,12 +219,12 @@ export function classifyMove(prevEval, currEval, isWhiteMove, isBestMove) {
   const delta = isWhiteMove ? (currEval - prevEval) : (prevEval - currEval);
 
   if (isBestMove && delta >= -10) {
-    if (delta > 150) return { label: 'Brilliant', symbol: '!!', color: 'var(--text-primary)', type: 'brilliant' };
-    return { label: 'Best Move', symbol: '!', color: 'var(--text-primary)', type: 'best' };
+    if (delta > 150) return { label: 'Brilliant', symbol: 'BRIL', color: 'var(--text-primary)', type: 'brilliant' };
+    return { label: 'Best Move', symbol: 'BEST', color: 'var(--text-primary)', type: 'best' };
   }
 
-  if (delta >= -25) return { label: 'Good', symbol: '=', color: 'var(--text-primary)', type: 'good' };
-  if (delta >= -80) return { label: 'Inaccuracy', symbol: '?!', color: 'var(--text-primary)', type: 'inaccuracy' };
-  if (delta >= -200) return { label: 'Mistake', symbol: '?', color: 'var(--text-primary)', type: 'mistake' };
-  return { label: 'Blunder', symbol: '??', color: 'var(--text-primary)', type: 'blunder' };
+  if (delta >= -25) return { label: 'Good', symbol: 'GOOD', color: 'var(--text-primary)', type: 'good' };
+  if (delta >= -80) return { label: 'Inaccuracy', symbol: 'INAC', color: 'var(--text-primary)', type: 'inaccuracy' };
+  if (delta >= -200) return { label: 'Mistake', symbol: 'MISS', color: 'var(--text-primary)', type: 'mistake' };
+  return { label: 'Blunder', symbol: 'BLUN', color: 'var(--text-primary)', type: 'blunder' };
 }

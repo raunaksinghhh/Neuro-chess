@@ -28,7 +28,7 @@ export function EngineVsEngineMode({
             WHITE ENGINE
           </div>
           <select
-            value={whitePersona?.id || 'tal'}
+            value={whitePersona?.id || 'advanced'}
             onChange={(e) => {
               const p = AI_PERSONAS.find((item) => item.id === e.target.value);
               if (p) onSetWhitePersona(p);
@@ -57,7 +57,7 @@ export function EngineVsEngineMode({
             BLACK ENGINE
           </div>
           <select
-            value={blackPersona?.id || 'magnus'}
+            value={blackPersona?.id || 'expert'}
             onChange={(e) => {
               const p = AI_PERSONAS.find((item) => item.id === e.target.value);
               if (p) onSetBlackPersona(p);
