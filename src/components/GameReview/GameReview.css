@@ -45,68 +45,187 @@
 .accuracy-label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.side-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.side-dot.white-dot {
+  background: #ffffff;
+  border: 1px solid var(--border-medium);
+}
+
+.side-dot.black-dot {
+  background: #0f172a;
+  border: 1px solid var(--border-medium);
 }
 
 .accuracy-percentage {
   font-size: 24px;
   font-weight: 800;
   font-family: var(--font-display);
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Move Classification Breakdown Table */
-.classification-table {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.classification-row {
-  display: grid;
-  grid-template-columns: 40px 1fr 40px;
-  align-items: center;
-  font-size: 12px;
-  font-family: var(--font-mono);
-  padding: 4px 6px;
-  border-radius: 4px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-}
-
-.class-white-count {
-  text-align: left;
-  font-weight: 700;
   color: var(--text-primary);
 }
 
-.class-label {
-  text-align: center;
-  font-weight: 600;
+/* Move Quality Analytics Table */
+.analytics-table-card {
   display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.analytics-table-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 50px;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   color: var(--text-secondary);
 }
 
-.class-black-count {
+.analytics-th-white {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: flex-start;
+  color: var(--text-primary);
+}
+
+.analytics-th-title {
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.analytics-th-black {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: flex-end;
+  color: var(--text-primary);
+}
+
+.analytics-table-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.analytics-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 50px;
+  align-items: center;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.analytics-row:last-child {
+  border-bottom: none;
+}
+
+.analytics-row:hover {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.analytics-count-white {
+  font-size: 14px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.analytics-label-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.analytics-label-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.1px;
+}
+
+.analytics-bar-track {
+  width: 100px;
+  height: 4px;
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 2px;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+.analytics-bar-empty {
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.analytics-bar-white {
+  background: #0f172a;
+  height: 100%;
+  border-right: 1px solid #ffffff;
+  transition: width 0.3s ease;
+}
+
+.analytics-bar-black {
+  background: #64748b;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.analytics-count-black {
+  font-size: 14px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
   text-align: right;
-  font-weight: 700;
-  color: var(--text-secondary);
 }
 
 /* Evaluation SVG Chart */
 .eval-chart-wrapper {
   width: 100%;
-  height: 120px;
+  height: 110px;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eval-chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+  padding: 12px;
 }
 
 .eval-chart-svg {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Chess } from 'chess.js';
+import { User } from 'lucide-react';
 import { Header } from './components/Header/Header';
 import { Chessboard } from './components/Chessboard/Chessboard';
 import { EvalBar } from './components/Evaluation/EvalBar';
@@ -625,7 +626,7 @@ export default function App() {
           <div className="player-bar">
             <div className="player-info">
               <div className="player-avatar">
-                {orientation === 'white' ? activePersona?.avatar : '👤'}
+                {orientation === 'white' ? (activePersona?.avatar || 'AI') : <User size={15} />}
               </div>
               <div className="player-name">
                 {orientation === 'white'
@@ -633,8 +634,8 @@ export default function App() {
                   : 'You (White)'}
               </div>
             </div>
-            <span className="badge badge-purple">
-              {orientation === 'white' ? (activeMode === 'play' ? `Elo ${activePersona?.elo}` : '⚫ Black') : '⚪ White'}
+            <span className="badge badge-good">
+              {orientation === 'white' ? (activeMode === 'play' ? `Elo ${activePersona?.elo}` : 'Black') : 'White'}
             </span>
           </div>
 
@@ -664,7 +665,7 @@ export default function App() {
           <div className="player-bar">
             <div className="player-info">
               <div className="player-avatar">
-                {orientation === 'white' ? '👤' : activePersona?.avatar}
+                {orientation === 'white' ? <User size={15} /> : (activePersona?.avatar || 'AI')}
               </div>
               <div className="player-name">
                 {orientation === 'white'
@@ -672,8 +673,8 @@ export default function App() {
                   : `${activePersona?.name} (AI)`}
               </div>
             </div>
-            <span className="badge badge-cyan">
-              {orientation === 'white' ? '⚪ White' : '⚫ Black'}
+            <span className="badge badge-good">
+              {orientation === 'white' ? 'White' : 'Black'}
             </span>
           </div>
         </div>

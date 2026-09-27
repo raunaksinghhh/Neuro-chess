@@ -74,9 +74,10 @@
 
 .nav-tab.active {
   background: #ffffff;
-  color: var(--accent-primary);
-  border: 1px solid rgba(37, 99, 235, 0.3);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+  color: var(--text-primary);
+  font-weight: 700;
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ── Header Actions ── */

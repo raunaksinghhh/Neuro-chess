@@ -84,7 +84,7 @@ export function Header({
           onClick={onToggleSound}
           title={soundEnabled ? 'Mute Audio' : 'Unmute Audio'}
         >
-          {soundEnabled ? <Volume2 size={18} color="var(--neon-cyan)" /> : <VolumeX size={18} />}
+          {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
         </button>
         <button className="btn-icon" onClick={onOpenSettings} title="Settings & Themes">
           <Settings size={18} />

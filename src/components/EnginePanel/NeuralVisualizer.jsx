@@ -16,7 +16,7 @@ export function NeuralVisualizer({
       {/* Heatmap Toggle */}
       <div className="neural-toggle-row">
         <div className="toggle-label">
-          <Eye size={14} color="var(--neon-cyan)" />
+          <Eye size={14} />
           <span>Influence Heatmap</span>
         </div>
         <button
@@ -30,7 +30,7 @@ export function NeuralVisualizer({
       {/* Threat Arrows Toggle */}
       <div className="neural-toggle-row">
         <div className="toggle-label">
-          <ShieldAlert size={14} color="var(--neon-rose)" />
+          <ShieldAlert size={14} />
           <span>Threat Vectors</span>
         </div>
         <button
@@ -44,7 +44,7 @@ export function NeuralVisualizer({
       {/* Engine Best Move Arrow Toggle */}
       <div className="neural-toggle-row">
         <div className="toggle-label">
-          <Cpu size={14} color="var(--neon-purple)" />
+          <Cpu size={14} />
           <span>Engine Best Arrow</span>
         </div>
         <button

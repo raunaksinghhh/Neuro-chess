@@ -120,7 +120,7 @@
 
 .pv-move-badge {
   font-weight: 700;
-  color: var(--accent-primary);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 6px;

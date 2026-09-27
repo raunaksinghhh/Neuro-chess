@@ -27,7 +27,7 @@ export function EnginePanel({
       {/* Header / Active AI Persona */}
       <div className="engine-header">
         <div className="engine-identity">
-          <div className="engine-avatar">{activePersona?.avatar || '🧠'}</div>
+          <div className="engine-avatar">{activePersona?.avatar || 'AI'}</div>
           <div className="engine-meta">
             <div className="engine-name">{activePersona?.name || 'NeuroEngine'}</div>
             <div className="engine-elo">
@@ -36,7 +36,7 @@ export function EnginePanel({
           </div>
         </div>
         {isThinking && (
-          <span className="badge badge-cyan animate-pulse-glow">
+          <span className="badge badge-good animate-pulse-glow">
             <Activity size={12} className="animate-spin" /> Thinking
           </span>
         )}

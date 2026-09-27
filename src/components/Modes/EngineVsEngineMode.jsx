@@ -16,7 +16,7 @@ export function EngineVsEngineMode({
   return (
     <div className="mode-panel glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <FastForward size={16} color="var(--neon-purple)" />
+        <FastForward size={16} />
         <span>Self-Play Simulation (AI vs AI)</span>
       </div>
 
@@ -25,7 +25,7 @@ export function EngineVsEngineMode({
         {/* White Engine */}
         <div>
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
-            ⚪ WHITE ENGINE
+            WHITE ENGINE
           </div>
           <select
             value={whitePersona?.id || 'tal'}
@@ -54,7 +54,7 @@ export function EngineVsEngineMode({
         {/* Black Engine */}
         <div>
           <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
-            ⚫ BLACK ENGINE
+            BLACK ENGINE
           </div>
           <select
             value={blackPersona?.id || 'magnus'}
@@ -85,7 +85,7 @@ export function EngineVsEngineMode({
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
           <span>MOVE DELAY</span>
-          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--neon-cyan)' }}>{(speedMs / 1000).toFixed(1)}s</span>
+          <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', fontWeight: 700 }}>{(speedMs / 1000).toFixed(1)}s</span>
         </div>
         <input
           type="range"
@@ -94,7 +94,7 @@ export function EngineVsEngineMode({
           step="100"
           value={speedMs}
           onChange={(e) => onSetSpeedMs(Number(e.target.value))}
-          style={{ width: '100%', accentColor: 'var(--neon-cyan)' }}
+          style={{ width: '100%', accentColor: 'var(--text-primary)' }}
         />
       </div>
 

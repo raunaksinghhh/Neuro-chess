@@ -54,22 +54,22 @@ export function GameReview({ history = [], onSelectMove, currentMoveIndex = -1 }
   }
 
   const classificationRows = [
-    { label: 'Brilliant', symbol: '!!', color: '#00f0ff', key: 'brilliant' },
-    { label: 'Best', symbol: '⭐', color: '#10b981', key: 'best' },
-    { label: 'Good', symbol: '✓', color: '#94a3b8', key: 'good' },
-    { label: 'Inaccuracy', symbol: '?!', color: '#f59e0b', key: 'inaccuracy' },
-    { label: 'Mistake', symbol: '?', color: '#f97316', key: 'mistake' },
-    { label: 'Blunder', symbol: '??', color: '#ef4444', key: 'blunder' },
+    { label: 'Brilliant Moves', key: 'brilliant' },
+    { label: 'Best Moves', key: 'best' },
+    { label: 'Good Moves', key: 'good' },
+    { label: 'Inaccuracies', key: 'inaccuracy' },
+    { label: 'Mistakes', key: 'mistake' },
+    { label: 'Blunders', key: 'blunder' },
   ];
 
   return (
     <div className="gamereview-container">
       <div className="review-header">
         <div className="review-title">
-          <Award size={18} color="var(--neon-purple)" />
+          <Award size={18} />
           <span>Game Analytics & Accuracy</span>
         </div>
-        <span className="badge badge-purple">
+        <span className="badge badge-good">
           <Sparkles size={11} /> AI Reviewed
         </span>
       </div>
@@ -77,55 +77,97 @@ export function GameReview({ history = [], onSelectMove, currentMoveIndex = -1 }
       {/* Accuracy Banner */}
       <div className="accuracy-banner">
         <div className="accuracy-card">
-          <span className="accuracy-label">⚪ White Accuracy</span>
+          <span className="accuracy-label">
+            <span className="side-dot white-dot" /> White Accuracy
+          </span>
           <span className="accuracy-percentage">{whiteAccuracy}%</span>
         </div>
         <div className="accuracy-card">
-          <span className="accuracy-label">⚫ Black Accuracy</span>
+          <span className="accuracy-label">
+            <span className="side-dot black-dot" /> Black Accuracy
+          </span>
           <span className="accuracy-percentage">{blackAccuracy}%</span>
         </div>
       </div>
 
       {/* Evaluation Advantage Chart */}
       <div className="eval-chart-wrapper">
-        <svg className="eval-chart-svg" viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none">
-          {/* Zero baseline */}
-          <line x1="0" y1={midY} x2={chartWidth} y2={midY} stroke="rgba(255, 255, 255, 0.15)" strokeDasharray="3,3" strokeWidth="1" />
+        {coords.length === 0 ? (
+          <div className="eval-chart-empty">
+            <BarChart3 size={18} />
+            <span>No moves recorded yet — play moves to view evaluation curve</span>
+          </div>
+        ) : (
+          <svg className="eval-chart-svg" viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none">
+            {/* Zero baseline */}
+            <line x1="0" y1={midY} x2={chartWidth} y2={midY} stroke="rgba(0, 0, 0, 0.15)" strokeDasharray="3,3" strokeWidth="1" />
 
-          {/* Eval Curve */}
-          {coords.length > 0 && (
-            <path d={pathD} fill="none" stroke="var(--neon-cyan)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          )}
+            {/* Eval Curve */}
+            <path d={pathD} fill="none" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-          {/* Move Points */}
-          {coords.map((c, i) => (
-            <circle
-              key={i}
-              cx={c.x}
-              cy={c.y}
-              r={currentMoveIndex === c.moveIdx ? 4 : 2}
-              fill={currentMoveIndex === c.moveIdx ? '#ffffff' : (c.score >= 0 ? '#00f0ff' : '#a855f7')}
-              stroke="#0f172a"
-              strokeWidth="1"
-              style={{ cursor: 'pointer' }}
-              onClick={() => onSelectMove(c.moveIdx)}
-            />
-          ))}
-        </svg>
+            {/* Move Points */}
+            {coords.map((c, i) => (
+              <circle
+                key={i}
+                cx={c.x}
+                cy={c.y}
+                r={currentMoveIndex === c.moveIdx ? 4 : 2.5}
+                fill={currentMoveIndex === c.moveIdx ? '#0f172a' : '#64748b'}
+                stroke="#ffffff"
+                strokeWidth="1"
+                style={{ cursor: 'pointer' }}
+                onClick={() => onSelectMove(c.moveIdx)}
+              />
+            ))}
+          </svg>
+        )}
       </div>
 
-      {/* Move Quality Breakdown */}
-      <div className="classification-table">
-        {classificationRows.map((row) => (
-          <div key={row.key} className="classification-row">
-            <span className="class-white-count">{stats.w[row.key]}</span>
-            <span className="class-label" style={{ color: row.color }}>
-              <span>{row.symbol}</span>
-              <span>{row.label}</span>
-            </span>
-            <span className="class-black-count">{stats.b[row.key]}</span>
+      {/* Move Quality Analytics Table */}
+      <div className="analytics-table-card">
+        <div className="analytics-table-header">
+          <div className="analytics-th-white">
+            <span className="side-dot white-dot" />
+            <span>White</span>
           </div>
-        ))}
+          <div className="analytics-th-title">Move Quality Breakdown</div>
+          <div className="analytics-th-black">
+            <span>Black</span>
+            <span className="side-dot black-dot" />
+          </div>
+        </div>
+
+        <div className="analytics-table-body">
+          {classificationRows.map((row) => {
+            const wCount = stats.w[row.key] || 0;
+            const bCount = stats.b[row.key] || 0;
+            const total = wCount + bCount;
+            const wPercent = total > 0 ? (wCount / total) * 100 : 50;
+            const bPercent = total > 0 ? (bCount / total) * 100 : 50;
+
+            return (
+              <div key={row.key} className="analytics-row">
+                <span className="analytics-count-white">{wCount}</span>
+
+                <div className="analytics-label-col">
+                  <span className="analytics-label-text">{row.label}</span>
+                  <div className="analytics-bar-track" title={`White: ${wCount} | Black: ${bCount}`}>
+                    {total > 0 ? (
+                      <>
+                        <div className="analytics-bar-white" style={{ width: `${wPercent}%` }} />
+                        <div className="analytics-bar-black" style={{ width: `${bPercent}%` }} />
+                      </>
+                    ) : (
+                      <div className="analytics-bar-empty" />
+                    )}
+                  </div>
+                </div>
+
+                <span className="analytics-count-black">{bCount}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

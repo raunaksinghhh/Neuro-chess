@@ -19,7 +19,7 @@ export function AnalysisMode({
   return (
     <div className="mode-panel glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <Layers size={16} color="var(--neon-cyan)" />
+        <Layers size={16} />
         <span>Analysis Studio & Sandbox</span>
       </div>
 
@@ -41,7 +41,7 @@ export function AnalysisMode({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-            <Cpu size={14} color="var(--neon-cyan)" />
+            <Cpu size={14} />
             <span>Continuous AI Evaluation</span>
           </div>
           <button

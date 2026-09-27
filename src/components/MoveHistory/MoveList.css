@@ -96,33 +96,39 @@
 }
 
 .badge-brilliant {
-  background: rgba(37, 99, 235, 0.15);
-  color: #2563eb;
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge-best {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge-good {
-  background: rgba(100, 116, 139, 0.15);
-  color: #475569;
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge-inaccuracy {
-  background: rgba(245, 158, 11, 0.18);
-  color: #d97706;
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge-mistake {
-  background: rgba(249, 115, 22, 0.18);
-  color: #ea580c;
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge-blunder {
-  background: rgba(239, 68, 68, 0.18);
-  color: #dc2626;
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
 
 .movelist-controls {

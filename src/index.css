@@ -267,41 +267,44 @@ button:disabled {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.2px;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
 }
 
 .badge-cyan {
-  background: rgba(2, 132, 199, 0.1);
-  color: #0284c7;
-  border: 1px solid rgba(2, 132, 199, 0.25);
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--text-primary);
+  border: 1px solid rgba(15, 23, 42, 0.15);
 }
 
 .badge-purple {
-  background: rgba(139, 92, 246, 0.1);
-  color: #7c3aed;
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--text-primary);
+  border: 1px solid rgba(15, 23, 42, 0.15);
 }
 
 .badge-emerald {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--text-primary);
+  border: 1px solid rgba(15, 23, 42, 0.15);
 }
 
 .badge-amber {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--text-primary);
+  border: 1px solid rgba(15, 23, 42, 0.15);
 }
 
 .badge-rose {
-  background: rgba(244, 63, 94, 0.1);
-  color: #e11d48;
-  border: 1px solid rgba(244, 63, 94, 0.25);
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--text-primary);
+  border: 1px solid rgba(15, 23, 42, 0.15);
 }
 
 .badge-good {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text-muted);
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--text-primary);
   border: 1px solid var(--border-subtle);
 }
 

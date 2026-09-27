@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, RefreshCw, BarChart2, X } from 'lucide-react';
+import { Trophy, RefreshCw, BarChart2, X, Swords, Handshake } from 'lucide-react';
 
 export function GameOverModal({
   isOpen,
@@ -32,16 +32,12 @@ export function GameOverModal({
   if (!isOpen) return null;
 
   let title = 'Game Over';
-  let badgeColor = 'badge-purple';
   if (isWin) {
     title = 'Victory!';
-    badgeColor = 'badge-emerald';
   } else if (isLoss) {
     title = 'Defeat';
-    badgeColor = 'badge-rose';
   } else if (isDraw) {
     title = 'Draw';
-    badgeColor = 'badge-amber';
   }
 
   return (
@@ -69,15 +65,15 @@ export function GameOverModal({
           <X size={16} />
         </button>
 
-        <div style={{ fontSize: '42px', marginTop: '6px' }}>
-          {isWin ? '🏆' : isLoss ? '⚔️' : '🤝'}
+        <div style={{ marginTop: '6px', color: 'var(--text-primary)' }}>
+          {isWin ? <Trophy size={48} strokeWidth={1.75} /> : isLoss ? <Swords size={48} strokeWidth={1.75} /> : <Handshake size={48} strokeWidth={1.75} />}
         </div>
 
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>
             {title}
           </h2>
-          <span className={`badge ${badgeColor}`} style={{ fontSize: '12px', padding: '4px 12px' }}>
+          <span className="badge badge-good" style={{ fontSize: '12px', padding: '4px 12px', fontWeight: 700 }}>
             {reason} • Result: {result}
           </span>
         </div>
@@ -87,7 +83,7 @@ export function GameOverModal({
             <RefreshCw size={16} /> New Game / Rematch
           </button>
           <button className="btn-secondary" onClick={onOpenReview} style={{ width: '100%' }}>
-            <BarChart2 size={16} color="var(--neon-purple)" /> Review Game & Accuracy
+            <BarChart2 size={16} /> Review Game & Accuracy
           </button>
         </div>
       </div>

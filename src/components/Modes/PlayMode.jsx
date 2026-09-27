@@ -55,11 +55,11 @@ export function PlayMode({
             {isPlayerTurn ? 'Your Turn' : `${activePersona?.name} is thinking...`}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-            {isPlayerTurn ? `Playing as ${playerColor === 'w' ? 'White ⚪' : 'Black ⚫'}` : 'Calculating optimal move'}
+            {isPlayerTurn ? `Playing as ${playerColor === 'w' ? 'White' : 'Black'}` : 'Calculating optimal move'}
           </div>
         </div>
 
-        <span className={`badge ${isPlayerTurn ? 'badge-emerald' : 'badge-cyan'}`}>
+        <span className="badge badge-good">
           {isPlayerTurn ? 'Your Move' : 'AI Thinking'}
         </span>
       </div>
@@ -140,21 +140,21 @@ export function PlayMode({
           onClick={() => onSetPlayerColor('w')}
           style={{ fontSize: '12px', padding: '6px' }}
         >
-          ⚪ Play as White
+          Play as White
         </button>
         <button
           className={`btn-secondary ${playerColor === 'b' ? 'active' : ''}`}
           onClick={() => onSetPlayerColor('b')}
           style={{ fontSize: '12px', padding: '6px' }}
         >
-          ⚫ Play as Black
+          Play as Black
         </button>
       </div>
 
       {/* Action Buttons */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
         <button className="btn-secondary" onClick={onGetHint} title="Engine Best Move Hint (H)">
-          <Lightbulb size={14} color="var(--accent-amber)" />
+          <Lightbulb size={14} />
           <span style={{ fontSize: '11px' }}>Hint</span>
         </button>
         <button className="btn-secondary" onClick={onTakeback} title="Undo Move">

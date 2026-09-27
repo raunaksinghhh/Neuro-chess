@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, Flame, Lightbulb, SkipForward, RotateCcw } from 'lucide-react';
+import { Target, Flame, Lightbulb, SkipForward, RotateCcw, CheckCircle2, XCircle } from 'lucide-react';
 
 export function PuzzleMode({
   currentPuzzle,
@@ -15,15 +15,15 @@ export function PuzzleMode({
     <div className="mode-panel glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Puzzle Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 700 }}>
-          <Target size={16} color="var(--neon-emerald)" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <Target size={16} />
           <span>Tactical Puzzle Arena</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="badge badge-amber" title="Current Streak">
+          <span className="badge badge-good" title="Current Streak">
             <Flame size={12} /> {streak} Streak
           </span>
-          <span className="badge badge-emerald">Rating {puzzleRating}</span>
+          <span className="badge badge-good">Rating {puzzleRating}</span>
         </div>
       </div>
 
@@ -34,22 +34,22 @@ export function PuzzleMode({
             <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
               {currentPuzzle.title}
             </span>
-            <span className="badge badge-purple">{currentPuzzle.theme}</span>
+            <span className="badge badge-good">{currentPuzzle.theme}</span>
           </div>
 
-          <div style={{ fontSize: '12px', color: 'var(--neon-cyan)', fontWeight: 600 }}>
-            {currentPuzzle.playerColor === 'w' ? '⚪ White to move and win' : '⚫ Black to move and win'}
+          <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>
+            {currentPuzzle.playerColor === 'w' ? 'White to move and win' : 'Black to move and win'}
           </div>
 
           {currentPuzzle.description && (
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
               {currentPuzzle.description}
             </div>
           )}
 
           {hintVisible && currentPuzzle.hint && (
-            <div style={{ fontSize: '12px', color: 'var(--neon-amber)', background: 'rgba(245, 158, 11, 0.1)', padding: '6px 10px', borderRadius: '4px' }}>
-              💡 Hint: {currentPuzzle.hint}
+            <div style={{ fontSize: '12px', color: 'var(--text-primary)', background: 'rgba(0, 0, 0, 0.05)', padding: '6px 10px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Lightbulb size={13} /> Hint: {currentPuzzle.hint}
             </div>
           )}
         </div>
@@ -57,20 +57,20 @@ export function PuzzleMode({
 
       {/* Status Feedback */}
       {puzzleStatus === 'solved' && (
-        <div className="badge badge-emerald" style={{ padding: '8px', justifyContent: 'center', fontSize: '13px' }}>
-          🎉 Puzzle Solved! +15 Rating
+        <div className="badge badge-good" style={{ padding: '8px', justifyContent: 'center', fontSize: '13px', fontWeight: 700 }}>
+          <CheckCircle2 size={15} /> Puzzle Solved! +15 Rating
         </div>
       )}
       {puzzleStatus === 'failed' && (
-        <div className="badge badge-rose" style={{ padding: '8px', justifyContent: 'center', fontSize: '13px' }}>
-          ❌ Incorrect Move. Try again!
+        <div className="badge badge-good" style={{ padding: '8px', justifyContent: 'center', fontSize: '13px', fontWeight: 700 }}>
+          <XCircle size={15} /> Incorrect Move. Try again!
         </div>
       )}
 
       {/* Action Buttons */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <button className="btn-secondary" onClick={onShowHint}>
-          <Lightbulb size={15} color="var(--neon-amber)" /> Hint
+          <Lightbulb size={15} /> Hint
         </button>
         <button className="btn-secondary" onClick={onRetryPuzzle}>
           <RotateCcw size={15} /> Retry
