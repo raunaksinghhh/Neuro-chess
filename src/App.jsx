@@ -344,7 +344,7 @@ export default function App() {
               aiMove = {
                 from: cppRes.bestMove.from,
                 to: cppRes.bestMove.to,
-                promotion: cppRes.bestMove.promotion || 'q'
+                ...(cppRes.bestMove.promotion ? { promotion: cppRes.bestMove.promotion } : {})
               };
             }
           }
@@ -357,12 +357,12 @@ export default function App() {
               aiMove = {
                 from: result.bestMove.from,
                 to: result.bestMove.to,
-                promotion: result.bestMove.promotion || 'q'
+                ...(result.bestMove.promotion ? { promotion: result.bestMove.promotion } : {})
               };
             }
           }
 
-          if (aiMove) {
+          if (aiMove && chess.fen() === currentFen) {
             makeMove(aiMove);
           }
         } catch (err) {
@@ -392,21 +392,26 @@ export default function App() {
     const currentTurn = chess.turn();
     const currentPersona = currentTurn === 'w' ? whitePersona : blackPersona;
 
+    const currentFen = chess.fen();
     const timer = setTimeout(async () => {
       let move = null;
       if (externalEngine.isConnected) {
-        const cppRes = await externalEngine.queryEvaluation(chess.fen(), currentPersona.depth || 4);
+        const cppRes = await externalEngine.queryEvaluation(currentFen, currentPersona.depth || 4);
         if (cppRes?.bestMove) {
-          move = { from: cppRes.bestMove.from, to: cppRes.bestMove.to };
+          move = {
+            from: cppRes.bestMove.from,
+            to: cppRes.bestMove.to,
+            ...(cppRes.bestMove.promotion ? { promotion: cppRes.bestMove.promotion } : {})
+          };
         }
       }
       if (!move) {
         move = await getAIMove(chess, currentPersona);
       }
 
-      if (move) {
+      if (move && chess.fen() === currentFen) {
         makeMove(move);
-      } else {
+      } else if (!move) {
         setIsSimulationRunning(false);
       }
     }, simSpeedMs);

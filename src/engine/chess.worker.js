@@ -188,7 +188,7 @@ function minimax(chess, depth, alpha, beta, isMax) {
 
 // ── Worker Message Handler ─────────────────────────────────────────────────────
 self.onmessage = function (e) {
-  const { fen, depth, multiPV = 3, persona } = e.data;
+  const { reqId, fen, depth, multiPV = 3, persona } = e.data;
 
   tt.clear(); // Fresh TT per search to avoid memory bloat
 
@@ -197,7 +197,7 @@ self.onmessage = function (e) {
 
   const moves = chess.moves({ verbose: true });
   if (!moves.length) {
-    self.postMessage({ bestMove: null, score: 0, lines: [], nodes: 0, nps: 0, depth });
+    self.postMessage({ reqId, bestMove: null, score: 0, lines: [], nodes: 0, nps: 0, depth });
     return;
   }
 
@@ -236,7 +236,15 @@ self.onmessage = function (e) {
   }
 
   self.postMessage({
-    bestMove: result ? { from: result.from, to: result.to, san: result.san } : null,
+    reqId,
+    bestMove: result
+      ? {
+          from: result.from,
+          to: result.to,
+          san: result.san,
+          promotion: result.move?.promotion || undefined
+        }
+      : null,
     score: best?.score || 0,
     lines: candidates.slice(0, multiPV),
     nodes,
