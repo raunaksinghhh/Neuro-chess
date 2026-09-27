@@ -60,7 +60,7 @@ export default function App() {
   const [engineAnalysis, setEngineAnalysis] = useState(null);
   const [isThinking, setIsThinking] = useState(false);
   const isThinkingRef = useRef(false); // Ref to avoid stale closure in async AI turn
-  const [activePersona, setActivePersona] = useState(AI_PERSONAS[2]); // Advanced (1850) default
+  const [activePersona, setActivePersona] = useState(AI_PERSONAS[2]); // Advanced (1250) default
   const [externalEngineUrl, setExternalEngineUrl] = useState('http://localhost:8080');
 
   // Play vs AI Match State (Defaults to active unlimited game)
@@ -71,8 +71,8 @@ export default function App() {
   const [isGameActive, setIsGameActive] = useState(true);
 
   // Engine vs Engine Match State
-  const [whitePersona, setWhitePersona] = useState(AI_PERSONAS[2]); // Advanced (1850)
-  const [blackPersona, setBlackPersona] = useState(AI_PERSONAS[3]); // Expert (2350)
+  const [whitePersona, setWhitePersona] = useState(AI_PERSONAS[2]); // Advanced (1250)
+  const [blackPersona, setBlackPersona] = useState(AI_PERSONAS[3]); // Expert (1500)
   const [isSimulationRunning, setIsSimulationRunning] = useState(false);
   const [simSpeedMs, setSimSpeedMs] = useState(800);
 
@@ -341,10 +341,22 @@ export default function App() {
           if (externalEngine.isConnected) {
             const cppRes = await externalEngine.queryEvaluation(currentFen, activePersona.depth || 4);
             if (cppRes?.bestMove) {
+              let chosenMove = cppRes.bestMove;
+              const blunderChance = activePersona?.blunderChance || 0;
+              const randomness = activePersona?.randomness || 0;
+              const lines = cppRes.lines || [];
+
+              if (Math.random() < blunderChance && lines.length > 1) {
+                const blunderIdx = Math.min(lines.length - 1, Math.floor(Math.random() * 2) + 1);
+                chosenMove = lines[blunderIdx];
+              } else if (randomness > 0 && lines.length > 1 && Math.random() < randomness) {
+                chosenMove = lines[1];
+              }
+
               aiMove = {
-                from: cppRes.bestMove.from,
-                to: cppRes.bestMove.to,
-                ...(cppRes.bestMove.promotion ? { promotion: cppRes.bestMove.promotion } : {})
+                from: chosenMove.from,
+                to: chosenMove.to,
+                ...(chosenMove.promotion ? { promotion: chosenMove.promotion } : {})
               };
             }
           }
@@ -398,10 +410,22 @@ export default function App() {
       if (externalEngine.isConnected) {
         const cppRes = await externalEngine.queryEvaluation(currentFen, currentPersona.depth || 4);
         if (cppRes?.bestMove) {
+          let chosenMove = cppRes.bestMove;
+          const blunderChance = currentPersona?.blunderChance || 0;
+          const randomness = currentPersona?.randomness || 0;
+          const lines = cppRes.lines || [];
+
+          if (Math.random() < blunderChance && lines.length > 1) {
+            const blunderIdx = Math.min(lines.length - 1, Math.floor(Math.random() * 2) + 1);
+            chosenMove = lines[blunderIdx];
+          } else if (randomness > 0 && lines.length > 1 && Math.random() < randomness) {
+            chosenMove = lines[1];
+          }
+
           move = {
-            from: cppRes.bestMove.from,
-            to: cppRes.bestMove.to,
-            ...(cppRes.bestMove.promotion ? { promotion: cppRes.bestMove.promotion } : {})
+            from: chosenMove.from,
+            to: chosenMove.to,
+            ...(chosenMove.promotion ? { promotion: chosenMove.promotion } : {})
           };
         }
       }
